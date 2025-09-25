@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ข้อมูลไอเทมเวทมนตร์ในเกม Clash of Clans</title>
+<meta name="description" content="สำรวจทุกไอเทมเวทมนตร์ใน Clash of Clans พร้อมภาพสวย คำอธิบายเข้าใจง่าย เคล็ดลับการใช้งาน และราคาซื้อ/ขาย จบในหน้าเดียว!">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="header" aria-hidden="false">
+    <a href="https://klawkla.com" target="_blank" rel="noopener">
+      <div class="logo"><img src="https://klawkla.com/content/images/2025/08/logo.webp" alt="Logo"></div>
+    </a>
+    <div class="title">
+      <strong>ไอเทมเวทมนตร์</strong>
+      <small>ภาพไอเทม • คำอธิบาย • วิธีใช้ • ราคาซื้อ/ขาย</small>
+    </div>
+  </div>
+
+  <div class="viewport" aria-roledescription="carousel">
+    <div class="track" id="track" aria-live="polite"></div>
+    <div class="nav" aria-hidden="false">
+      <button id="prev" aria-label="ก่อนหน้า">‹</button>
+      <button id="next" aria-label="ถัดไป">›</button>
+    </div>
+    <div class="dots" id="dots" aria-hidden="false"></div>
+    <button class="showall" id="btnAll" type="button">แสดงทั้งหมด</button>
+  </div>
+
+  <aside class="allpanel" id="allPanel" aria-hidden="true">
+    <button class="close" id="closeAll" aria-label="ปิด">×</button>
+    <div class="grid" id="allGrid" role="list"></div>
+  </aside>
+
+<script src="script.js"></script>
+</body>
+</html>
