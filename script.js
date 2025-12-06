@@ -201,15 +201,22 @@ ITEMS.forEach((it, i) => {
   const slide = document.createElement('article');
   slide.className = 'slide';
   slide.dataset.id = it.id;
+  
+  // New Glass Card Structure
   slide.innerHTML = `
-    <div class="media"><img src="${it.image}" alt="${it.name}"></div>
-    <section>
-      <div class="h1">${it.name} <span class="badge">${it.category}</span></div>
-      <div class="meta">${it.headline||''}</div>
-      <div class="desc">${it.desc||''}</div>
-      ${tips?`<ul class="tips">${tips}</ul>`:''}
-      <div class="prices">${buyChips}${sellChip}</div>
-    </section>`;
+    <div class="magic-card">
+        <div class="media">
+            <img src="${it.image}" alt="${it.name}">
+        </div>
+        <div class="content">
+            <div class="h1">${it.name} <span class="badge">${it.category}</span></div>
+            <div class="meta">${it.headline||''}</div>
+            <div class="desc">${it.desc||''}</div>
+            ${tips ? `<ul class="tips">${tips}</ul>` : ''}
+            <div class="prices">${buyChips}${sellChip}</div>
+        </div>
+    </div>`;
+  
   track.appendChild(slide);
 
   const d = document.createElement('div');
@@ -286,6 +293,46 @@ function endDrag(){
 track.addEventListener('pointerup', endDrag);
 track.addEventListener('pointercancel', endDrag);
 window.addEventListener('resize', size);
+
+// Parallax Effect
+let parallaxRaf = null;
+function handleParallax(e) {
+  if (parallaxRaf) return;
+  
+  parallaxRaf = requestAnimationFrame(() => {
+    const shapes = document.querySelectorAll('.bg-shape');
+    if (shapes.length === 0) {
+      parallaxRaf = null;
+      return;
+    }
+
+    shapes.forEach((shape, index) => {
+      const speed = (index + 1) * 20;
+      const xOffset = (window.innerWidth / 2 - e.clientX) / speed;
+      const yOffset = (window.innerHeight / 2 - e.clientY) / speed;
+      const rotate = index === 0 ? -15 : 0;
+      
+      shape.style.transform = `translate(${xOffset}px, ${yOffset}px) rotate(${rotate}deg)`;
+    });
+    
+    parallaxRaf = null;
+  });
+}
+document.addEventListener('mousemove', handleParallax, { passive: true });
+
+// Handle window resize for parallax
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    // Reset parallax on resize
+    document.querySelectorAll('.bg-shape').forEach(shape => {
+      shape.style.transform = '';
+    });
+  }, 250);
+}, { passive: true });
+
+// Init
 size();
 
 const allPanelEl = document.getElementById('allPanel');
