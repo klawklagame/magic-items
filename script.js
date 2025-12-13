@@ -342,4 +342,4 @@ function toggleAll(state){
 }
 document.getElementById('btnAll').addEventListener('click', ()=>toggleAll(true));
 document.getElementById('closeAll').addEventListener('click', ()=>toggleAll(false));
-allPanelEl.addEventListener('click', (e)=>{ if(e.target===allPanelEl) toggleAll(false); });
+// Removed background click to close - only allow X button or ESC key
