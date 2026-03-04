@@ -176,7 +176,8 @@ const ITEMS = [
     prices:{ buy:[{type:"gems",value:500}], sell:{gems:50} }
   }
 ];
-const track = document.getElementById('track');
+
+const track   = document.getElementById('track');
 const dotsWrap = document.getElementById('dots');
 const allPanel = document.getElementById('allPanel');
 const allGrid  = document.getElementById('allGrid');
@@ -184,9 +185,9 @@ const closeAll = document.getElementById('closeAll');
 const btnAll   = document.getElementById('btnAll');
 
 function priceChip(p){
-  const icon = p.type==='gems' ? '<i class="gem"></i>'
+  const icon = p.type==='gems'   ? '<i class="gem"></i>'
              : p.type==='league' ? '<i class="league"></i>'
-             : p.type==='raid' ? '<i class="raid"></i>' : '';
+             : p.type==='raid'   ? '<i class="raid"></i>' : '';
   return `<span class="price">${icon}${p.label || (p.value ?? 'ตั้งค่า')}</span>`;
 }
 
@@ -194,15 +195,13 @@ ITEMS.forEach((it, i) => {
   const buyChips = (it.prices?.buy?.length)
     ? it.prices.buy.map(p => priceChip(p)).join('')
     : `<span class="price"><i class="gem"></i>ซื้อ ตั้งค่า</span>`;
-  const sellChip = it.prices?.sell?.gems!=null
+  const sellChip = it.prices?.sell?.gems != null
     ? `<span class="price"><i class="gem"></i>ขาย ${it.prices.sell.gems}</span>` : '';
   const tips = (it.tips||[]).map(t=>`<li>${t}</li>`).join('');
 
   const slide = document.createElement('article');
   slide.className = 'slide';
   slide.dataset.id = it.id;
-  
-  // New Glass Card Structure
   slide.innerHTML = `
     <div class="magic-card">
         <div class="media">
@@ -216,32 +215,30 @@ ITEMS.forEach((it, i) => {
             <div class="prices">${buyChips}${sellChip}</div>
         </div>
     </div>`;
-  
   track.appendChild(slide);
 
   const d = document.createElement('div');
   d.className = 'dot'+(i===0?' active':'');
-  d.addEventListener('click',()=>go(i));
+  d.addEventListener('click', ()=>go(i));
   dotsWrap.appendChild(d);
 
   const tile = document.createElement('button');
   tile.className = 'tile';
   tile.setAttribute('role','listitem');
   tile.innerHTML = `<img src="${it.image}" alt=""><div class="tname">${it.name}</div>`;
-  tile.addEventListener('click',()=>{ go(i); toggleAll(false); });
+  tile.addEventListener('click', ()=>{ go(i); toggleAll(false); });
   allGrid.appendChild(tile);
 });
 
-const slides = Array.from(track.children);
+const slides  = Array.from(track.children);
 const prevBtn = document.getElementById('prev');
 const nextBtn = document.getElementById('next');
 
-let index = 0, startX = 0, currentX = 0, dragging = false, width = 0;
+let index = 0, width = 0;
 
 function clamp(n,min,max){ return Math.max(min, Math.min(n,max)); }
 function setTransform(px){ track.style.transform = `translate3d(${px}px,0,0)`; }
 function toX(i){ return -i * width; }
-
 function size(){ width = track.clientWidth; go(index, false); }
 function go(i, animate=true){
   index = clamp(i, 0, slides.length-1);
@@ -263,145 +260,209 @@ window.addEventListener('keydown', (e)=>{
     if(e.key==='Escape') toggleAll(false);
     return;
   }
-  if(e.key==='ArrowLeft') go(index-1);
+  if(e.key==='ArrowLeft')  go(index-1);
   if(e.key==='ArrowRight') go(index+1);
 });
 
-const THRESH = 80;
-const TOUCH_THRESH = 50;
-let touchStartX = 0;
-let touchStartY = 0;
-let touchCurrentX = 0;
-let touchCurrentY = 0;
-let isTouchSwiping = false;
-let touchDirection = null;
+// ── Unified Swipe System ──
+const SWIPE_MIN   = 35;   // px minimum distance
+const SWIPE_VEL   = 0.28; // px/ms fast-flick threshold
+const DIR_LOCK    = 7;    // px before direction decided
+const EDGE_RESIST = 0.18; // fraction at first/last slide
 
-track.addEventListener('pointerdown', (e)=>{
-  if(allPanel.classList.contains('open')) return;
-  dragging = true; startX = e.clientX; currentX = startX;
-  track.setPointerCapture(e.pointerId);
+let sw = { active: false, dragging: false, dir: null, x0: 0, y0: 0, x: 0, t0: 0 };
+
+function swipeStart(x, y) {
+  if (allPanel.classList.contains('open')) return;
+  sw = { active: true, dragging: false, dir: null, x0: x, y0: y, x, t0: Date.now() };
   track.classList.remove('animating');
-});
-track.addEventListener('pointermove', (e)=>{
-  if(!dragging) return;
-  currentX = e.clientX;
-  const delta = currentX - startX;
-  setTransform(toX(index) + delta);
-});
-function endDrag(){
-  if(!dragging) return;
-  dragging = false;
-  const delta = currentX - startX;
-  if(Math.abs(delta) > THRESH){
-    if(delta < 0) go(index+1); else go(index-1);
-  }else{
-    go(index);
-  }
 }
-track.addEventListener('pointerup', endDrag);
-track.addEventListener('pointercancel', endDrag);
 
-// Touch events for mobile swipe
-track.addEventListener('touchstart', (e) => {
-  if(allPanel.classList.contains('open')) return;
-  const touch = e.touches[0];
-  touchStartX = touch.clientX;
-  touchStartY = touch.clientY;
-  touchCurrentX = touchStartX;
-  touchCurrentY = touchStartY;
-  isTouchSwiping = false;
-  touchDirection = null;
-  track.classList.remove('animating');
-}, { passive: true });
+function swipeMove(x, y) {
+  if (!sw.active) return;
+  const dx = x - sw.x0;
+  const dy = y - sw.y0;
 
-track.addEventListener('touchmove', (e) => {
-  if(allPanel.classList.contains('open')) return;
-  const touch = e.touches[0];
-  touchCurrentX = touch.clientX;
-  touchCurrentY = touch.clientY;
-  
-  const deltaX = touchCurrentX - touchStartX;
-  const deltaY = touchCurrentY - touchStartY;
-  
-  // Determine swipe direction on first significant move
-  if(!touchDirection && (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10)) {
-    touchDirection = Math.abs(deltaX) > Math.abs(deltaY) ? 'horizontal' : 'vertical';
+  if (!sw.dir) {
+    if (Math.abs(dx) < DIR_LOCK && Math.abs(dy) < DIR_LOCK) return;
+    sw.dir = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v';
+    if (sw.dir === 'v') { sw.active = false; return; }
+    sw.dragging = true;
   }
-  
-  // Only handle horizontal swipes
-  if(touchDirection === 'horizontal') {
-    isTouchSwiping = true;
-    e.preventDefault();
-    setTransform(toX(index) + deltaX);
-  }
-}, { passive: false });
 
-track.addEventListener('touchend', (e) => {
-  if(!isTouchSwiping) return;
-  
-  const deltaX = touchCurrentX - touchStartX;
-  
-  if(Math.abs(deltaX) > TOUCH_THRESH) {
-    if(deltaX < 0) {
-      go(index + 1);
-    } else {
-      go(index - 1);
-    }
+  if (!sw.dragging) return;
+  sw.x = x;
+
+  let d = dx;
+  if ((index === 0 && dx > 0) || (index === slides.length - 1 && dx < 0)) {
+    d = dx * EDGE_RESIST;
+  }
+  setTransform(toX(index) + d);
+}
+
+function swipeEnd() {
+  if (!sw.dragging) { sw.active = false; return; }
+  sw.active = false;
+  sw.dragging = false;
+
+  const dx  = sw.x - sw.x0;
+  const vel = Math.abs(dx) / Math.max(1, Date.now() - sw.t0);
+
+  if (Math.abs(dx) > SWIPE_MIN || vel > SWIPE_VEL) {
+    go(dx < 0 ? index + 1 : index - 1);
   } else {
     go(index);
   }
-  
-  isTouchSwiping = false;
-  touchDirection = null;
+}
+
+// Pointer events — mouse & stylus only
+track.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'touch') return;
+  swipeStart(e.clientX, e.clientY);
+  track.setPointerCapture(e.pointerId);
+});
+track.addEventListener('pointermove', e => {
+  if (e.pointerType === 'touch') return;
+  swipeMove(e.clientX, e.clientY);
+});
+track.addEventListener('pointerup',     e => { if (e.pointerType !== 'touch') swipeEnd(); });
+track.addEventListener('pointercancel', e => { if (e.pointerType !== 'touch') swipeEnd(); });
+
+// Touch events — mobile
+track.addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  swipeStart(t.clientX, t.clientY);
 }, { passive: true });
+
+track.addEventListener('touchmove', e => {
+  if (!sw.active) return;
+  const t = e.touches[0];
+  swipeMove(t.clientX, t.clientY);
+  if (sw.dragging) e.preventDefault();
+}, { passive: false });
+
+track.addEventListener('touchend',    () => swipeEnd(), { passive: true });
+track.addEventListener('touchcancel', () => swipeEnd(), { passive: true });
+
 window.addEventListener('resize', size);
 
 // Parallax Effect
 let parallaxRaf = null;
 function handleParallax(e) {
   if (parallaxRaf) return;
-  
   parallaxRaf = requestAnimationFrame(() => {
     const shapes = document.querySelectorAll('.bg-shape');
-    if (shapes.length === 0) {
-      parallaxRaf = null;
-      return;
-    }
-
-    shapes.forEach((shape, index) => {
-      const speed = (index + 1) * 20;
-      const xOffset = (window.innerWidth / 2 - e.clientX) / speed;
+    if (shapes.length === 0) { parallaxRaf = null; return; }
+    shapes.forEach((shape, i) => {
+      const speed = (i + 1) * 20;
+      const xOffset = (window.innerWidth  / 2 - e.clientX) / speed;
       const yOffset = (window.innerHeight / 2 - e.clientY) / speed;
-      const rotate = index === 0 ? -15 : 0;
-      
+      const rotate  = i === 0 ? -15 : 0;
       shape.style.transform = `translate(${xOffset}px, ${yOffset}px) rotate(${rotate}deg)`;
     });
-    
     parallaxRaf = null;
   });
 }
 document.addEventListener('mousemove', handleParallax, { passive: true });
 
-// Handle window resize for parallax
 let resizeTimeout;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(() => {
-    // Reset parallax on resize
-    document.querySelectorAll('.bg-shape').forEach(shape => {
-      shape.style.transform = '';
-    });
+    document.querySelectorAll('.bg-shape').forEach(shape => { shape.style.transform = ''; });
   }, 250);
 }, { passive: true });
 
 // Init
 size();
 
-const allPanelEl = document.getElementById('allPanel');
 function toggleAll(state){
-  allPanelEl.classList.toggle('open', state);
-  allPanelEl.setAttribute('aria-hidden', String(!state));
+  allPanel.classList.toggle('open', state);
+  allPanel.setAttribute('aria-hidden', String(!state));
 }
-document.getElementById('btnAll').addEventListener('click', ()=>toggleAll(true));
-document.getElementById('closeAll').addEventListener('click', ()=>toggleAll(false));
-// Removed background click to close - only allow X button or ESC key
+btnAll.addEventListener('click',   () => toggleAll(true));
+closeAll.addEventListener('click', () => toggleAll(false));
+
+/* ══════════════════════════════════════════════════
+   ENHANCEMENTS
+   ══════════════════════════════════════════════════ */
+
+// 1. Patch go() to trigger card entrance animation on slide change
+const _origGo = go;
+go = function(i, animate) {
+  if (animate === undefined) animate = true;
+  _origGo(i, animate);
+  if (animate && slides[index]) {
+    const card = slides[index].querySelector('.magic-card');
+    if (card) {
+      card.classList.remove('card-entering');
+      void card.offsetWidth;
+      card.classList.add('card-entering');
+      setTimeout(() => card.classList.remove('card-entering'), 700);
+    }
+  }
+};
+
+// 2. Ripple effect on showall click
+document.querySelectorAll('.showall').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    const ripple = document.createElement('span');
+    ripple.className = 'btn-ripple';
+    const rect = this.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height) * 2;
+    const x = e.clientX - rect.left - size / 2;
+    const y = e.clientY - rect.top  - size / 2;
+    ripple.style.cssText = `width:${size}px;height:${size}px;left:${x}px;top:${y}px;position:absolute;`;
+    this.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 700);
+  });
+});
+
+// 3. Custom cursor — pointer devices only
+if (window.matchMedia('(pointer: fine)').matches) {
+  const cursorDot  = document.createElement('div');
+  const cursorRing = document.createElement('div');
+  cursorDot.className  = 'cursor-dot';
+  cursorRing.className = 'cursor-ring';
+  document.body.appendChild(cursorDot);
+  document.body.appendChild(cursorRing);
+
+  let mx = window.innerWidth / 2, my = window.innerHeight / 2;
+  let rx = mx, ry = my;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX;
+    my = e.clientY;
+    cursorDot.style.left = mx + 'px';
+    cursorDot.style.top  = my + 'px';
+  }, { passive: true });
+
+  (function ringLoop() {
+    rx += (mx - rx) * 0.13;
+    ry += (my - ry) * 0.13;
+    cursorRing.style.left = rx.toFixed(2) + 'px';
+    cursorRing.style.top  = ry.toFixed(2) + 'px';
+    requestAnimationFrame(ringLoop);
+  })();
+
+  const interactives = 'button, a, .dot, [role="listitem"], .tile';
+  document.querySelectorAll(interactives).forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursorDot.classList.add('cursor-hover');
+      cursorRing.classList.add('cursor-hover');
+    }, { passive: true });
+    el.addEventListener('mouseleave', () => {
+      cursorDot.classList.remove('cursor-hover');
+      cursorRing.classList.remove('cursor-hover');
+    }, { passive: true });
+  });
+
+  document.addEventListener('mouseleave', () => {
+    cursorDot.style.opacity  = '0';
+    cursorRing.style.opacity = '0';
+  }, { passive: true });
+  document.addEventListener('mouseenter', () => {
+    cursorDot.style.opacity  = '1';
+    cursorRing.style.opacity = '1';
+  }, { passive: true });
+}
