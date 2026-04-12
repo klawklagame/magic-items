@@ -177,27 +177,39 @@ const ITEMS = [
   }
 ];
 
-const track   = document.getElementById('track');
+const track    = document.getElementById('track');
 const dotsWrap = document.getElementById('dots');
 const allPanel = document.getElementById('allPanel');
 const allGrid  = document.getElementById('allGrid');
 const closeAll = document.getElementById('closeAll');
 const btnAll   = document.getElementById('btnAll');
+const prevBtn  = document.getElementById('prev');
+const nextBtn  = document.getElementById('next');
 
-function priceChip(p){
-  const icon = p.type==='gems'   ? '<i class="gem"></i>'
-             : p.type==='league' ? '<i class="league"></i>'
-             : p.type==='raid'   ? '<i class="raid"></i>' : '';
-  return `<span class="price">${icon}${p.label || (p.value ?? 'ตั้งค่า')}</span>`;
+const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) =>
+  ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])
+);
+
+function priceChip(p) {
+  const icon = p.type === 'gems'   ? '<i class="gem"></i>'
+             : p.type === 'league' ? '<i class="league"></i>'
+             : p.type === 'raid'   ? '<i class="raid"></i>' : '';
+  return `<span class="price">${icon}${escapeHtml(p.label ?? p.value ?? 'ตั้งค่า')}</span>`;
 }
 
+// Build all DOM in fragments (single reflow)
+const slideFrag = document.createDocumentFragment();
+const dotFrag   = document.createDocumentFragment();
+const tileFrag  = document.createDocumentFragment();
+
 ITEMS.forEach((it, i) => {
-  const buyChips = (it.prices?.buy?.length)
-    ? it.prices.buy.map(p => priceChip(p)).join('')
+  const buyChips = it.prices?.buy?.length
+    ? it.prices.buy.map(priceChip).join('')
     : `<span class="price"><i class="gem"></i>ซื้อ ตั้งค่า</span>`;
   const sellChip = it.prices?.sell?.gems != null
     ? `<span class="price"><i class="gem"></i>ขาย ${it.prices.sell.gems}</span>` : '';
-  const tips = (it.tips||[]).map(t=>`<li>${t}</li>`).join('');
+  const tips = (it.tips || []).map(t => `<li>${escapeHtml(t)}</li>`).join('');
+  const loadAttr = i === 0 ? 'eager" fetchpriority="high' : 'lazy';
 
   const slide = document.createElement('article');
   slide.className = 'slide';
@@ -205,83 +217,119 @@ ITEMS.forEach((it, i) => {
   slide.innerHTML = `
     <div class="magic-card">
         <div class="media">
-            <img src="${it.image}" alt="${it.name}">
+            <img src="${it.image}" alt="${escapeHtml(it.name)}" width="240" height="240" loading="${loadAttr}" decoding="async">
         </div>
         <div class="content">
-            <div class="h1">${it.name} <span class="badge">${it.category}</span></div>
-            <div class="meta">${it.headline||''}</div>
-            <div class="desc">${it.desc||''}</div>
+            <div class="h1">${escapeHtml(it.name)} <span class="badge">${escapeHtml(it.category)}</span></div>
+            <div class="meta">${escapeHtml(it.headline || '')}</div>
+            <div class="desc">${escapeHtml(it.desc || '')}</div>
             ${tips ? `<ul class="tips">${tips}</ul>` : ''}
             <div class="prices">${buyChips}${sellChip}</div>
         </div>
     </div>`;
-  track.appendChild(slide);
+  slideFrag.appendChild(slide);
 
-  const d = document.createElement('div');
-  d.className = 'dot'+(i===0?' active':'');
-  d.addEventListener('click', ()=>go(i));
-  dotsWrap.appendChild(d);
+  const d = document.createElement('button');
+  d.type = 'button';
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.setAttribute('aria-label', `ไปยังรายการที่ ${i + 1}`);
+  d.dataset.index = i;
+  dotFrag.appendChild(d);
 
   const tile = document.createElement('button');
+  tile.type = 'button';
   tile.className = 'tile';
-  tile.setAttribute('role','listitem');
-  tile.innerHTML = `<img src="${it.image}" alt=""><div class="tname">${it.name}</div>`;
-  tile.addEventListener('click', ()=>{ go(i); toggleAll(false); });
-  allGrid.appendChild(tile);
+  tile.setAttribute('role', 'listitem');
+  tile.dataset.index = i;
+  tile.innerHTML = `<img src="${it.image}" alt="" width="80" height="80" loading="lazy" decoding="async"><div class="tname">${escapeHtml(it.name)}</div>`;
+  tileFrag.appendChild(tile);
 });
+
+track.appendChild(slideFrag);
+dotsWrap.appendChild(dotFrag);
+allGrid.appendChild(tileFrag);
 
 const slides  = Array.from(track.children);
-const prevBtn = document.getElementById('prev');
-const nextBtn = document.getElementById('next');
+const dots    = Array.from(dotsWrap.children);
 
-let index = 0, width = 0;
+let index = 0, width = 0, activeDot = dots[0];
 
-function clamp(n,min,max){ return Math.max(min, Math.min(n,max)); }
-function setTransform(px){ track.style.transform = `translate3d(${px}px,0,0)`; }
-function toX(i){ return -i * width; }
-function size(){ width = track.clientWidth; go(index, false); }
-function go(i, animate=true){
-  index = clamp(i, 0, slides.length-1);
+const clamp = (n, min, max) => Math.max(min, Math.min(n, max));
+const setTransform = (px) => { track.style.transform = `translate3d(${px}px,0,0)`; };
+const toX = (i) => -i * width;
+
+function size() {
+  width = track.clientWidth;
+  setTransform(toX(index));
+}
+
+function updateActiveDot(next) {
+  if (activeDot === next) return;
+  activeDot.classList.remove('active');
+  next.classList.add('active');
+  activeDot = next;
+}
+
+function triggerCardEntrance() {
+  const card = slides[index]?.querySelector('.magic-card');
+  if (!card) return;
+  card.classList.remove('card-entering');
+  void card.offsetWidth;
+  card.classList.add('card-entering');
+}
+
+function go(i, animate = true) {
+  const newIndex = clamp(i, 0, slides.length - 1);
+  const changed = newIndex !== index;
+  index = newIndex;
   track.classList.toggle('animating', animate);
   setTransform(toX(index));
-  updateUI();
-  if(animate){ setTimeout(()=>track.classList.remove('animating'), 280); }
-}
-function updateUI(){
-  prevBtn.disabled = (index===0);
-  nextBtn.disabled = (index===slides.length-1);
-  Array.from(dotsWrap.children).forEach((d,di)=>d.classList.toggle('active', di===index));
+  prevBtn.disabled = index === 0;
+  nextBtn.disabled = index === slides.length - 1;
+  updateActiveDot(dots[index]);
+  if (animate && changed) triggerCardEntrance();
 }
 
-prevBtn.addEventListener('click', ()=>go(index-1));
-nextBtn.addEventListener('click', ()=>go(index+1));
-window.addEventListener('keydown', (e)=>{
-  if(allPanel.classList.contains('open')){
-    if(e.key==='Escape') toggleAll(false);
-    return;
-  }
-  if(e.key==='ArrowLeft')  go(index-1);
-  if(e.key==='ArrowRight') go(index+1);
+// transitionend removes the animating class (replaces fragile setTimeout)
+track.addEventListener('transitionend', (e) => {
+  if (e.propertyName === 'transform') track.classList.remove('animating');
 });
 
-// ── Unified Swipe System ──
-const SWIPE_MIN   = 35;   // px minimum distance
-const SWIPE_VEL   = 0.28; // px/ms fast-flick threshold
-const DIR_LOCK    = 7;    // px before direction decided
-const EDGE_RESIST = 0.18; // fraction at first/last slide
+// Event delegation for dots and tiles
+dotsWrap.addEventListener('click', (e) => {
+  const d = e.target.closest('.dot');
+  if (d) go(parseInt(d.dataset.index, 10));
+});
+allGrid.addEventListener('click', (e) => {
+  const t = e.target.closest('.tile');
+  if (t) { go(parseInt(t.dataset.index, 10)); toggleAll(false); }
+});
 
+prevBtn.addEventListener('click', () => go(index - 1));
+nextBtn.addEventListener('click', () => go(index + 1));
+
+window.addEventListener('keydown', (e) => {
+  if (allPanel.classList.contains('open')) {
+    if (e.key === 'Escape') toggleAll(false);
+    return;
+  }
+  if (e.key === 'ArrowLeft')  go(index - 1);
+  else if (e.key === 'ArrowRight') go(index + 1);
+});
+
+// ── Swipe ──
+const SWIPE_MIN = 35, SWIPE_VEL = 0.28, DIR_LOCK = 7, EDGE_RESIST = 0.18;
 let sw = { active: false, dragging: false, dir: null, x0: 0, y0: 0, x: 0, t0: 0 };
 
 function swipeStart(x, y) {
   if (allPanel.classList.contains('open')) return;
-  sw = { active: true, dragging: false, dir: null, x0: x, y0: y, x, t0: Date.now() };
+  sw = { active: true, dragging: false, dir: null, x0: x, y0: y, x, t0: performance.now() };
   track.classList.remove('animating');
 }
 
 function swipeMove(x, y) {
   if (!sw.active) return;
-  const dx = x - sw.x0;
-  const dy = y - sw.y0;
+  const dx = x - sw.x0, dy = y - sw.y0;
 
   if (!sw.dir) {
     if (Math.abs(dx) < DIR_LOCK && Math.abs(dy) < DIR_LOCK) return;
@@ -289,7 +337,6 @@ function swipeMove(x, y) {
     if (sw.dir === 'v') { sw.active = false; return; }
     sw.dragging = true;
   }
-
   if (!sw.dragging) return;
   sw.x = x;
 
@@ -304,10 +351,8 @@ function swipeEnd() {
   if (!sw.dragging) { sw.active = false; return; }
   sw.active = false;
   sw.dragging = false;
-
   const dx  = sw.x - sw.x0;
-  const vel = Math.abs(dx) / Math.max(1, Date.now() - sw.t0);
-
+  const vel = Math.abs(dx) / Math.max(1, performance.now() - sw.t0);
   if (Math.abs(dx) > SWIPE_MIN || vel > SWIPE_VEL) {
     go(dx < 0 ? index + 1 : index - 1);
   } else {
@@ -315,154 +360,137 @@ function swipeEnd() {
   }
 }
 
-// Pointer events — mouse & stylus only
-track.addEventListener('pointerdown', e => {
+track.addEventListener('pointerdown', (e) => {
   if (e.pointerType === 'touch') return;
   swipeStart(e.clientX, e.clientY);
   track.setPointerCapture(e.pointerId);
 });
-track.addEventListener('pointermove', e => {
+track.addEventListener('pointermove', (e) => {
   if (e.pointerType === 'touch') return;
   swipeMove(e.clientX, e.clientY);
 });
-track.addEventListener('pointerup',     e => { if (e.pointerType !== 'touch') swipeEnd(); });
-track.addEventListener('pointercancel', e => { if (e.pointerType !== 'touch') swipeEnd(); });
+track.addEventListener('pointerup',     (e) => { if (e.pointerType !== 'touch') swipeEnd(); });
+track.addEventListener('pointercancel', (e) => { if (e.pointerType !== 'touch') swipeEnd(); });
 
-// Touch events — mobile
-track.addEventListener('touchstart', e => {
+track.addEventListener('touchstart', (e) => {
   const t = e.touches[0];
   swipeStart(t.clientX, t.clientY);
 }, { passive: true });
-
-track.addEventListener('touchmove', e => {
+track.addEventListener('touchmove', (e) => {
   if (!sw.active) return;
   const t = e.touches[0];
   swipeMove(t.clientX, t.clientY);
   if (sw.dragging) e.preventDefault();
 }, { passive: false });
+track.addEventListener('touchend',    swipeEnd, { passive: true });
+track.addEventListener('touchcancel', swipeEnd, { passive: true });
 
-track.addEventListener('touchend',    () => swipeEnd(), { passive: true });
-track.addEventListener('touchcancel', () => swipeEnd(), { passive: true });
+// ── Parallax — hover-capable pointers only ──
+const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+const bgShapes = [...document.querySelectorAll('.bg-shape')];
+let parallaxRaf = null, pxX = 0, pxY = 0;
 
-window.addEventListener('resize', size);
-
-// Parallax Effect
-let parallaxRaf = null;
-function handleParallax(e) {
-  if (parallaxRaf) return;
-  parallaxRaf = requestAnimationFrame(() => {
-    const shapes = document.querySelectorAll('.bg-shape');
-    if (shapes.length === 0) { parallaxRaf = null; return; }
-    shapes.forEach((shape, i) => {
-      const speed = (i + 1) * 20;
-      const xOffset = (window.innerWidth  / 2 - e.clientX) / speed;
-      const yOffset = (window.innerHeight / 2 - e.clientY) / speed;
-      const rotate  = i === 0 ? -15 : 0;
-      shape.style.transform = `translate(${xOffset}px, ${yOffset}px) rotate(${rotate}deg)`;
-    });
-    parallaxRaf = null;
-  });
+function runParallax() {
+  parallaxRaf = null;
+  const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+  for (let i = 0; i < bgShapes.length; i++) {
+    const speed = (i + 1) * 20;
+    const rotate = i === 0 ? -15 : 0;
+    bgShapes[i].style.transform = `translate3d(${(cx - pxX) / speed}px, ${(cy - pxY) / speed}px, 0) rotate(${rotate}deg)`;
+  }
 }
-document.addEventListener('mousemove', handleParallax, { passive: true });
 
+if (canHover && bgShapes.length) {
+  document.addEventListener('mousemove', (e) => {
+    pxX = e.clientX; pxY = e.clientY;
+    if (!parallaxRaf) parallaxRaf = requestAnimationFrame(runParallax);
+  }, { passive: true });
+}
+
+// ── Unified resize (debounced) ──
 let resizeTimeout;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(() => {
-    document.querySelectorAll('.bg-shape').forEach(shape => { shape.style.transform = ''; });
-  }, 250);
+    size();
+    bgShapes.forEach((s) => { s.style.transform = ''; });
+  }, 150);
 }, { passive: true });
 
-// Init
-size();
-
-function toggleAll(state){
+// ── Show-all panel ──
+function toggleAll(state) {
   allPanel.classList.toggle('open', state);
   allPanel.setAttribute('aria-hidden', String(!state));
 }
 btnAll.addEventListener('click',   () => toggleAll(true));
 closeAll.addEventListener('click', () => toggleAll(false));
 
-/* ══════════════════════════════════════════════════
-   ENHANCEMENTS
-   ══════════════════════════════════════════════════ */
-
-// 1. Patch go() to trigger card entrance animation on slide change
-const _origGo = go;
-go = function(i, animate) {
-  if (animate === undefined) animate = true;
-  _origGo(i, animate);
-  if (animate && slides[index]) {
-    const card = slides[index].querySelector('.magic-card');
-    if (card) {
-      card.classList.remove('card-entering');
-      void card.offsetWidth;
-      card.classList.add('card-entering');
-      setTimeout(() => card.classList.remove('card-entering'), 700);
-    }
-  }
-};
-
-// 2. Ripple effect on showall click
-document.querySelectorAll('.showall').forEach(btn => {
-  btn.addEventListener('click', function(e) {
-    const ripple = document.createElement('span');
-    ripple.className = 'btn-ripple';
-    const rect = this.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height) * 2;
-    const x = e.clientX - rect.left - size / 2;
-    const y = e.clientY - rect.top  - size / 2;
-    ripple.style.cssText = `width:${size}px;height:${size}px;left:${x}px;top:${y}px;position:absolute;`;
-    this.appendChild(ripple);
-    setTimeout(() => ripple.remove(), 700);
-  });
+// Ripple on showall (delegated)
+btnAll.addEventListener('click', function (e) {
+  const ripple = document.createElement('span');
+  ripple.className = 'btn-ripple';
+  const rect = this.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height) * 2;
+  ripple.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX - rect.left - size / 2}px;top:${e.clientY - rect.top - size / 2}px;position:absolute;`;
+  this.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 700);
 });
 
-// 3. Custom cursor — pointer devices only
-if (window.matchMedia('(pointer: fine)').matches) {
+// ── Custom cursor (hover-capable only, idle-aware) ──
+if (canHover) {
   const cursorDot  = document.createElement('div');
   const cursorRing = document.createElement('div');
   cursorDot.className  = 'cursor-dot';
   cursorRing.className = 'cursor-ring';
-  document.body.appendChild(cursorDot);
-  document.body.appendChild(cursorRing);
+  document.body.append(cursorDot, cursorRing);
 
   let mx = window.innerWidth / 2, my = window.innerHeight / 2;
   let rx = mx, ry = my;
+  let running = false, idleTimer = null;
 
-  document.addEventListener('mousemove', e => {
-    mx = e.clientX;
-    my = e.clientY;
-    cursorDot.style.left = mx + 'px';
-    cursorDot.style.top  = my + 'px';
-  }, { passive: true });
-
-  (function ringLoop() {
+  function ringLoop() {
     rx += (mx - rx) * 0.13;
     ry += (my - ry) * 0.13;
-    cursorRing.style.left = rx.toFixed(2) + 'px';
-    cursorRing.style.top  = ry.toFixed(2) + 'px';
-    requestAnimationFrame(ringLoop);
-  })();
+    cursorRing.style.transform = `translate3d(${rx.toFixed(2)}px, ${ry.toFixed(2)}px, 0) translate(-50%, -50%)`;
+    if (Math.abs(mx - rx) > 0.1 || Math.abs(my - ry) > 0.1) {
+      requestAnimationFrame(ringLoop);
+    } else {
+      running = false;
+    }
+  }
 
-  const interactives = 'button, a, .dot, [role="listitem"], .tile';
-  document.querySelectorAll(interactives).forEach(el => {
-    el.addEventListener('mouseenter', () => {
+  document.addEventListener('mousemove', (e) => {
+    mx = e.clientX; my = e.clientY;
+    cursorDot.style.transform = `translate3d(${mx}px, ${my}px, 0) translate(-50%, -50%)`;
+    if (!running) { running = true; requestAnimationFrame(ringLoop); }
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => { running = false; }, 2000);
+  }, { passive: true });
+
+  // Delegated hover state for interactive elements
+  const HOVER_SEL = 'button, a, .dot, [role="listitem"], .tile';
+  document.addEventListener('mouseover', (e) => {
+    if (e.target.closest(HOVER_SEL)) {
       cursorDot.classList.add('cursor-hover');
       cursorRing.classList.add('cursor-hover');
-    }, { passive: true });
-    el.addEventListener('mouseleave', () => {
+    }
+  }, { passive: true });
+  document.addEventListener('mouseout', (e) => {
+    if (e.target.closest(HOVER_SEL)) {
       cursorDot.classList.remove('cursor-hover');
       cursorRing.classList.remove('cursor-hover');
-    }, { passive: true });
-  });
+    }
+  }, { passive: true });
 
   document.addEventListener('mouseleave', () => {
-    cursorDot.style.opacity  = '0';
+    cursorDot.style.opacity = '0';
     cursorRing.style.opacity = '0';
   }, { passive: true });
   document.addEventListener('mouseenter', () => {
-    cursorDot.style.opacity  = '1';
+    cursorDot.style.opacity = '1';
     cursorRing.style.opacity = '1';
   }, { passive: true });
 }
+
+// Init
+size();
