@@ -47,7 +47,7 @@ const ITEMS = [
     headline:"บูสต์เหมืองทั้งหมดให้ผลิตทรัพยากรไวขึ้นสองเท่าเป็นเวลา 1 ชั่วโมง",
     desc:"ควรใช้กับเหมืองที่มีเลเวลสูงเพื่อผลิตทรัพยากรได้มากขึ้น",
     tips:["ใช้ตอนคลังเก็บทรัพยากรมีทรัพยากรน้อย","ส่วนมากแกล้วจะขายทิ้ง"],
-    prices:{ buy:[{type:"300",value:500}], sell:{gems:10} }
+    prices:{ buy:[{type:"gems",value:500}], sell:{gems:10} }
   },
   {id:"builderpotion", name:"น้ำยาช่างก่อสร้าง", category:"น้ำยา",
     image: IMG_BASE+"builderpotion.webp",
@@ -130,7 +130,7 @@ const ITEMS = [
     image: IMG_BASE+"runeofbuilderelixir.webp",
     headline:"เติมน้ำอมฤตในเมืองกลางคืนให้เต็มคลัง",
     desc:"ใช้กับเมืองกลางคืนที่ใช้น้ำอมฤตมาก",
-    tips:["ใช้คู่กับหอนาฬืกา/โหลดาวช่างก่อสร้าง"],
+    tips:["ใช้คู่กับหอนาฬิกา/โหลดาวช่างก่อสร้าง"],
     prices:{ buy:[{type:"gems",value:1000}], sell:{gems:50} }
   },
   {id:"hammerofbuilding", name:"ค้อนสิ่งก่อสร้าง", category:"ค้อน",
@@ -190,49 +190,77 @@ const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) =>
   ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])
 );
 
-function priceChip(p) {
-  const icon = p.type === 'gems'   ? '<i class="gem"></i>'
-             : p.type === 'league' ? '<i class="league"></i>'
-             : p.type === 'raid'   ? '<i class="raid"></i>' : '';
-  return `<span class="price">${icon}${escapeHtml(p.label ?? p.value ?? 'ตั้งค่า')}</span>`;
+function priceChip(p, cls = '') {
+  const icon = p.type === 'gems'   ? '<i class="gem" aria-hidden="true"></i>'
+             : p.type === 'league' ? '<i class="league" aria-hidden="true"></i>'
+             : p.type === 'raid'   ? '<i class="raid" aria-hidden="true"></i>' : '';
+  return `<span class="price ${cls}">${icon}${escapeHtml(p.label ?? p.value ?? 'ตั้งค่า')}</span>`;
 }
 
-// Build all DOM in fragments (single reflow)
+// Build DOM in fragments (single reflow)
 const slideFrag = document.createDocumentFragment();
 const dotFrag   = document.createDocumentFragment();
 const tileFrag  = document.createDocumentFragment();
 
 ITEMS.forEach((it, i) => {
   const buyChips = it.prices?.buy?.length
-    ? it.prices.buy.map(priceChip).join('')
-    : `<span class="price"><i class="gem"></i>ซื้อ ตั้งค่า</span>`;
+    ? it.prices.buy.map(p => priceChip(p, 'price--buy')).join('')
+    : '<span class="price price--buy"><i class="gem" aria-hidden="true"></i>ตั้งค่า</span>';
   const sellChip = it.prices?.sell?.gems != null
-    ? `<span class="price"><i class="gem"></i>ขาย ${it.prices.sell.gems}</span>` : '';
-  const tips = (it.tips || []).map(t => `<li>${escapeHtml(t)}</li>`).join('');
-  const loadAttr = i === 0 ? 'eager" fetchpriority="high' : 'lazy';
+    ? priceChip({ type: 'gems', label: 'ขาย ' + it.prices.sell.gems }, 'price--sell') : '';
+  const tipsHtml = (it.tips || []).map(t => `<li>${escapeHtml(t)}</li>`).join('');
+  const loadAttr = i === 0 ? 'eager' : 'lazy';
+  const priorityAttr = i === 0 ? ' fetchpriority="high"' : '';
 
   const slide = document.createElement('article');
   slide.className = 'slide';
   slide.dataset.id = it.id;
+  slide.setAttribute('role', 'group');
+  slide.setAttribute('aria-roledescription', 'slide');
+  slide.setAttribute('aria-label', `${i + 1} จาก ${ITEMS.length}: ${it.name}`);
   slide.innerHTML = `
-    <div class="magic-card">
-        <div class="media">
-            <img src="${it.image}" alt="${escapeHtml(it.name)}" width="240" height="240" loading="${loadAttr}" decoding="async">
+    <article class="x-card magic-card">
+        <span class="x-corner x-corner--tl" aria-hidden="true"></span>
+        <span class="x-corner x-corner--tr" aria-hidden="true"></span>
+        <span class="x-corner x-corner--bl" aria-hidden="true"></span>
+        <span class="x-corner x-corner--br" aria-hidden="true"></span>
+
+        <div class="magic-head">
+            <div class="magic-media">
+                <img src="${it.image}" alt="${escapeHtml(it.name)}" width="120" height="120" loading="${loadAttr}"${priorityAttr} decoding="async">
+            </div>
+            <div class="magic-titleblock">
+                <div class="x-eyebrow">
+                    <span class="x-eyebrow-dash" aria-hidden="true"></span>
+                    <span>${String(i + 1).padStart(2, '0')} / ${escapeHtml(it.category)}</span>
+                </div>
+                <h2 class="x-title">
+                    <span class="x-title-text">${escapeHtml(it.name)}</span><span class="x-title-dot" aria-hidden="true">.</span>
+                </h2>
+                <p class="magic-meta">${escapeHtml(it.headline || '')}</p>
+            </div>
+            <span class="x-pulse" aria-hidden="true"></span>
         </div>
-        <div class="content">
-            <div class="h1">${escapeHtml(it.name)} <span class="badge">${escapeHtml(it.category)}</span></div>
-            <div class="meta">${escapeHtml(it.headline || '')}</div>
-            <div class="desc">${escapeHtml(it.desc || '')}</div>
-            ${tips ? `<ul class="tips">${tips}</ul>` : ''}
-            <div class="prices">${buyChips}${sellChip}</div>
+
+        <span class="x-perf" aria-hidden="true"></span>
+
+        <div class="magic-body">
+            <div class="magic-desc-wrap">
+                <p class="magic-desc">${escapeHtml(it.desc || '')}</p>
+                ${tipsHtml ? `<ul class="magic-tips">${tipsHtml}</ul>` : ''}
+            </div>
+            <div class="magic-prices-wrap">
+                <div class="magic-prices-label">ราคา</div>
+                <div class="magic-prices">${buyChips}${sellChip}</div>
+            </div>
         </div>
-    </div>`;
+    </article>`;
   slideFrag.appendChild(slide);
 
   const d = document.createElement('button');
   d.type = 'button';
   d.className = 'dot' + (i === 0 ? ' active' : '');
-  d.setAttribute('aria-label', `ไปยังรายการที่ ${i + 1}`);
+  d.setAttribute('aria-label', `ไปยังรายการที่ ${i + 1}: ${it.name}`);
   d.dataset.index = i;
   dotFrag.appendChild(d);
 
@@ -241,7 +269,9 @@ ITEMS.forEach((it, i) => {
   tile.className = 'tile';
   tile.setAttribute('role', 'listitem');
   tile.dataset.index = i;
-  tile.innerHTML = `<img src="${it.image}" alt="" width="80" height="80" loading="lazy" decoding="async"><div class="tname">${escapeHtml(it.name)}</div>`;
+  tile.innerHTML = `
+    <img src="${it.image}" alt="" width="80" height="80" loading="lazy" decoding="async">
+    <div class="tname">${escapeHtml(it.name)}</div>`;
   tileFrag.appendChild(tile);
 });
 
@@ -266,7 +296,9 @@ function size() {
 function updateActiveDot(next) {
   if (activeDot === next) return;
   activeDot.classList.remove('active');
+  activeDot.removeAttribute('aria-current');
   next.classList.add('active');
+  next.setAttribute('aria-current', 'true');
   activeDot = next;
 }
 
@@ -290,12 +322,10 @@ function go(i, animate = true) {
   if (animate && changed) triggerCardEntrance();
 }
 
-// transitionend removes the animating class (replaces fragile setTimeout)
 track.addEventListener('transitionend', (e) => {
   if (e.propertyName === 'transform') track.classList.remove('animating');
 });
 
-// Event delegation for dots and tiles
 dotsWrap.addEventListener('click', (e) => {
   const d = e.target.closest('.dot');
   if (d) go(parseInt(d.dataset.index, 10));
@@ -385,112 +415,27 @@ track.addEventListener('touchmove', (e) => {
 track.addEventListener('touchend',    swipeEnd, { passive: true });
 track.addEventListener('touchcancel', swipeEnd, { passive: true });
 
-// ── Parallax — hover-capable pointers only ──
-const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-const bgShapes = [...document.querySelectorAll('.bg-shape')];
-let parallaxRaf = null, pxX = 0, pxY = 0;
-
-function runParallax() {
-  parallaxRaf = null;
-  const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
-  for (let i = 0; i < bgShapes.length; i++) {
-    const speed = (i + 1) * 20;
-    const rotate = i === 0 ? -15 : 0;
-    bgShapes[i].style.transform = `translate3d(${(cx - pxX) / speed}px, ${(cy - pxY) / speed}px, 0) rotate(${rotate}deg)`;
-  }
-}
-
-if (canHover && bgShapes.length) {
-  document.addEventListener('mousemove', (e) => {
-    pxX = e.clientX; pxY = e.clientY;
-    if (!parallaxRaf) parallaxRaf = requestAnimationFrame(runParallax);
-  }, { passive: true });
-}
-
 // ── Unified resize (debounced) ──
 let resizeTimeout;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimeout);
-  resizeTimeout = setTimeout(() => {
-    size();
-    bgShapes.forEach((s) => { s.style.transform = ''; });
-  }, 150);
+  resizeTimeout = setTimeout(size, 120);
 }, { passive: true });
 
 // ── Show-all panel ──
 function toggleAll(state) {
   allPanel.classList.toggle('open', state);
   allPanel.setAttribute('aria-hidden', String(!state));
+  document.body.style.overflow = state ? 'hidden' : '';
 }
 btnAll.addEventListener('click',   () => toggleAll(true));
 closeAll.addEventListener('click', () => toggleAll(false));
 
-// Ripple on showall (delegated)
-btnAll.addEventListener('click', function (e) {
-  const ripple = document.createElement('span');
-  ripple.className = 'btn-ripple';
-  const rect = this.getBoundingClientRect();
-  const size = Math.max(rect.width, rect.height) * 2;
-  ripple.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX - rect.left - size / 2}px;top:${e.clientY - rect.top - size / 2}px;position:absolute;`;
-  this.appendChild(ripple);
-  setTimeout(() => ripple.remove(), 700);
+// close on backdrop click
+allPanel.addEventListener('click', (e) => {
+  if (e.target === allPanel) toggleAll(false);
 });
-
-// ── Custom cursor (hover-capable only, idle-aware) ──
-if (canHover) {
-  const cursorDot  = document.createElement('div');
-  const cursorRing = document.createElement('div');
-  cursorDot.className  = 'cursor-dot';
-  cursorRing.className = 'cursor-ring';
-  document.body.append(cursorDot, cursorRing);
-
-  let mx = window.innerWidth / 2, my = window.innerHeight / 2;
-  let rx = mx, ry = my;
-  let running = false, idleTimer = null;
-
-  function ringLoop() {
-    rx += (mx - rx) * 0.13;
-    ry += (my - ry) * 0.13;
-    cursorRing.style.transform = `translate3d(${rx.toFixed(2)}px, ${ry.toFixed(2)}px, 0) translate(-50%, -50%)`;
-    if (Math.abs(mx - rx) > 0.1 || Math.abs(my - ry) > 0.1) {
-      requestAnimationFrame(ringLoop);
-    } else {
-      running = false;
-    }
-  }
-
-  document.addEventListener('mousemove', (e) => {
-    mx = e.clientX; my = e.clientY;
-    cursorDot.style.transform = `translate3d(${mx}px, ${my}px, 0) translate(-50%, -50%)`;
-    if (!running) { running = true; requestAnimationFrame(ringLoop); }
-    clearTimeout(idleTimer);
-    idleTimer = setTimeout(() => { running = false; }, 2000);
-  }, { passive: true });
-
-  // Delegated hover state for interactive elements
-  const HOVER_SEL = 'button, a, .dot, [role="listitem"], .tile';
-  document.addEventListener('mouseover', (e) => {
-    if (e.target.closest(HOVER_SEL)) {
-      cursorDot.classList.add('cursor-hover');
-      cursorRing.classList.add('cursor-hover');
-    }
-  }, { passive: true });
-  document.addEventListener('mouseout', (e) => {
-    if (e.target.closest(HOVER_SEL)) {
-      cursorDot.classList.remove('cursor-hover');
-      cursorRing.classList.remove('cursor-hover');
-    }
-  }, { passive: true });
-
-  document.addEventListener('mouseleave', () => {
-    cursorDot.style.opacity = '0';
-    cursorRing.style.opacity = '0';
-  }, { passive: true });
-  document.addEventListener('mouseenter', () => {
-    cursorDot.style.opacity = '1';
-    cursorRing.style.opacity = '1';
-  }, { passive: true });
-}
 
 // Init
 size();
+go(0, false);
