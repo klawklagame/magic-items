@@ -190,6 +190,14 @@ const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) =>
   ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])
 );
 
+const CAT_CLASS = {
+  'ตำรา': 'book',
+  'น้ำยา': 'potion',
+  'รูน': 'rune',
+  'ค้อน': 'hammer',
+  'อื่น ๆ': 'misc',
+};
+
 function priceChip(p, cls = '') {
   const icon = p.type === 'gems'   ? '<i class="gem" aria-hidden="true"></i>'
              : p.type === 'league' ? '<i class="league" aria-hidden="true"></i>'
@@ -218,31 +226,19 @@ ITEMS.forEach((it, i) => {
   slide.setAttribute('role', 'group');
   slide.setAttribute('aria-roledescription', 'slide');
   slide.setAttribute('aria-label', `${i + 1} จาก ${ITEMS.length}: ${it.name}`);
+  const catKey = CAT_CLASS[it.category] || 'misc';
   slide.innerHTML = `
-    <article class="x-card magic-card">
-        <span class="x-corner x-corner--tl" aria-hidden="true"></span>
-        <span class="x-corner x-corner--tr" aria-hidden="true"></span>
-        <span class="x-corner x-corner--bl" aria-hidden="true"></span>
-        <span class="x-corner x-corner--br" aria-hidden="true"></span>
-
+    <article class="card magic-card magic-card--${catKey}">
         <div class="magic-head">
             <div class="magic-media">
                 <img src="${it.image}" alt="${escapeHtml(it.name)}" width="120" height="120" loading="${loadAttr}"${priorityAttr} decoding="async">
             </div>
             <div class="magic-titleblock">
-                <div class="x-eyebrow">
-                    <span class="x-eyebrow-dash" aria-hidden="true"></span>
-                    <span>${String(i + 1).padStart(2, '0')} / ${escapeHtml(it.category)}</span>
-                </div>
-                <h2 class="x-title">
-                    <span class="x-title-text">${escapeHtml(it.name)}</span><span class="x-title-dot" aria-hidden="true">.</span>
-                </h2>
+                <span class="eyebrow">${String(i + 1).padStart(2, '0')} · ${escapeHtml(it.category)}</span>
+                <h2 class="magic-name">${escapeHtml(it.name)}</h2>
                 <p class="magic-meta">${escapeHtml(it.headline || '')}</p>
             </div>
-            <span class="x-pulse" aria-hidden="true"></span>
         </div>
-
-        <span class="x-perf" aria-hidden="true"></span>
 
         <div class="magic-body">
             <div class="magic-desc-wrap">
