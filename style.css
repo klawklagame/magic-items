@@ -392,6 +392,13 @@ img { max-width: 100%; display: block; }
     gap: var(--space-md);
     flex-wrap: wrap;
 }
+@media (max-width: 640px) {
+    .controls-row {
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-md);
+    }
+}
 
 .dots {
     display: flex;
