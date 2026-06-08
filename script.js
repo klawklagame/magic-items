@@ -298,29 +298,14 @@ function updateActiveDot(next) {
   activeDot = next;
 }
 
-function triggerCardEntrance() {
-  const card = slides[index]?.querySelector('.magic-card');
-  if (!card) return;
-  card.classList.remove('card-entering');
-  void card.offsetWidth;
-  card.classList.add('card-entering');
-}
-
-function go(i, animate = true) {
+function go(i) {
   const newIndex = clamp(i, 0, slides.length - 1);
-  const changed = newIndex !== index;
   index = newIndex;
-  track.classList.toggle('animating', animate);
   setTransform(toX(index));
   prevBtn.disabled = index === 0;
   nextBtn.disabled = index === slides.length - 1;
   updateActiveDot(dots[index]);
-  if (animate && changed) triggerCardEntrance();
 }
-
-track.addEventListener('transitionend', (e) => {
-  if (e.propertyName === 'transform') track.classList.remove('animating');
-});
 
 dotsWrap.addEventListener('click', (e) => {
   const d = e.target.closest('.dot');
@@ -350,7 +335,6 @@ let sw = { active: false, dragging: false, dir: null, x0: 0, y0: 0, x: 0, t0: 0 
 function swipeStart(x, y) {
   if (allPanel.classList.contains('open')) return;
   sw = { active: true, dragging: false, dir: null, x0: x, y0: y, x, t0: performance.now() };
-  track.classList.remove('animating');
 }
 
 function swipeMove(x, y) {
@@ -434,4 +418,4 @@ allPanel.addEventListener('click', (e) => {
 
 // Init
 size();
-go(0, false);
+go(0);
