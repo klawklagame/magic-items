@@ -17,67 +17,50 @@
 </head>
 
 <body>
-    <div class="wrap">
+    <div class="app">
 
-        <header class="hero reveal" style="--i:0;">
-            <div class="container">
-                <div class="hero-top">
-                    <a class="hero-brand" href="https://www.klawkla.com/">
-                        <img src="https://klawkla.com/content/images/2025/08/logo.webp" alt="แกล้วกล้า"
-                            width="36" height="36" fetchpriority="high" decoding="async" />
-                        <span>KLAWKLA</span>
-                    </a>
-                    <span class="hero-tag">เครื่องมือชาวแคลช</span>
-                </div>
-
-                <h1 class="hero-title">ข้อมูลไอเทมเวทมนตร์</h1>
-
-                <p class="hero-sub">
-                    ข้อมูลไอเทมเวทมนตร์ทั้งหมดใน Clash of Clans
-                </p>
-            </div>
+        <header class="topbar reveal" style="--i:0;">
+            <a class="brand" href="https://www.klawkla.com/">
+                <img src="https://klawkla.com/content/images/2025/08/logo.webp" alt="แกล้วกล้า"
+                    width="34" height="34" fetchpriority="high" decoding="async" />
+                <span class="brand-name">KLAWKLA</span>
+            </a>
+            <h1 class="topbar-title">ไอเทมเวทมนตร์</h1>
+            <span class="topbar-tag">เครื่องมือชาวแคลช</span>
         </header>
 
-        <main class="viewport reveal" style="--i:1;" role="region" aria-roledescription="carousel" aria-label="Magic Items">
-            <div class="container">
-                <div class="viewport-inner">
-                    <div class="track" id="track"></div>
-                </div>
-            </div>
-        </main>
+        <nav class="filters reveal" style="--i:1;" id="filters" aria-label="กรองตามหมวดหมู่">
+            <!-- category chips injected -->
+        </nav>
 
-        <div class="controls-wrap reveal" style="--i:2;">
-            <div class="container controls-row">
-                <div class="controls-nav">
-                    <button id="prev" class="nav-btn" type="button" aria-label="ก่อนหน้า">‹</button>
-                    <div class="dots" id="dots" role="tablist" aria-label="ตัวบอกตำแหน่ง"></div>
-                    <button id="next" class="nav-btn" type="button" aria-label="ถัดไป">›</button>
+        <div class="layout">
+            <nav class="rail reveal" style="--i:2;" aria-label="รายการไอเทม">
+                <div class="rail-scroll" id="rail" role="tablist" aria-orientation="vertical"></div>
+            </nav>
+
+            <main class="stage reveal" style="--i:3;" id="stage" role="region" aria-live="polite"
+                aria-label="รายละเอียดไอเทม">
+                <div class="stage-bg" aria-hidden="true"></div>
+                <article class="detail" id="detail"></article>
+                <div class="stage-nav-group">
+                    <button class="stage-nav" id="prev" type="button" aria-label="ก่อนหน้า">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4 7 12l8 8" /></svg>
+                    </button>
+                    <button class="stage-nav" id="next" type="button" aria-label="ถัดไป">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8" /></svg>
+                    </button>
                 </div>
-                <button class="showall" id="btnAll" type="button">
-                    <span>ดูทั้งหมด</span>
-                </button>
-            </div>
+            </main>
         </div>
 
-        <footer class="foot reveal" style="--i:3;">
-            <div class="container">
-                <p class="credit">
-                    สร้างโดยผู้เล่นแคลชเพื่อผู้เล่นแคลช ·
-                    <a href="https://www.klawkla.com" target="_blank" rel="noopener noreferrer">klawkla.com</a>
-                </p>
-            </div>
+        <footer class="foot reveal" style="--i:4;">
+            <p class="credit">
+                สร้างโดยผู้เล่นแคลชเพื่อผู้เล่นแคลช ·
+                <a href="https://www.klawkla.com" target="_blank" rel="noopener noreferrer">klawkla.com</a>
+            </p>
         </footer>
-    </div>
 
-    <aside class="allpanel" id="allPanel" aria-hidden="true" aria-label="ไอเทมทั้งหมด">
-        <div class="allpanel-head">
-            <span class="eyebrow">ไอเทมทั้งหมด</span>
-            <button class="close" id="closeAll" type="button" aria-label="ปิด">×</button>
-        </div>
-        <div class="allpanel-body">
-            <div class="grid" id="allGrid" role="list"></div>
-        </div>
-    </aside>
+    </div>
 
     <script src="script.js" defer></script>
 </body>

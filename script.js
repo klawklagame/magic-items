@@ -10,8 +10,8 @@ const ITEMS = [
   {id:"bookoffighting", name:"ตำราการต่อสู้", category:"ตำรา",
     image: IMG_BASE+"bookoffighting.webp",
     headline:"ข้ามเวลาอัปเกรดทหารหรือเครื่องจักรในห้องทดลองทันที",
-    desc:"เหมาะกับงานวิจัยที่เวลายาว/เลเวลท้าย ๆ",
-    tips:["ใช้กับทหารหรือเครื่องจักรที่ใช้เวลา 10 วันขึ้นไป","ต้องวิจัยก่อนถึงจะใช้ได้"],
+    desc:"เหมาะกับงานวิจัยที่เวลานาน/เลเวลท้าย ๆ",
+    tips:["ใช้กับทหารหรือเครื่องจักรที่ใช้เวลาอัปเกรด 10 วันขึ้นไป","ต้องวิจัยก่อนถึงจะใช้ได้"],
     prices:{ buy:[{type:"gems",value:925}], sell:{gems:50} }
   },
   {id:"bookofspells", name:"ตำราอาคม", category:"ตำรา",
@@ -38,7 +38,7 @@ const ITEMS = [
   {id:"powerpotion", name:"น้ำยาพลัง", category:"น้ำยา",
     image: IMG_BASE+"powerpotion.webp",
     headline:"บูสต์ทหาร อาคม ให้เป็นเลเวลสูงสุดของห้องทดลอง 1 ชั่วโมง",
-    desc:"ดีสำหรับคนที่เลเวลยังไม่ตันแต่ต้องตีวอร์/วอร์ลีก",
+    desc:"ดีสำหรับคนที่เลเวลยังไม่ตันแต่ต้องตีวอร์/วอร์ลีก/โหมดจัดอันดับ",
     tips:["ใช้เวลาตีวอร์/วอร์ลีก","ใช้เมื่อมีเวลาเล่นจริง 1 ชั่วโมง"],
     prices:{ buy:[{type:"gems",value:300}], sell:{gems:10} }
   },
@@ -66,8 +66,8 @@ const ITEMS = [
   {id:"heropotion", name:"น้ำยาผู้กล้า", category:"น้ำยา",
     image: IMG_BASE+"heropotion.webp",
     headline:"บูสต์ผู้กล้าและสัตว์เลี้ยงให้เป็นเลเวลสูงสุดของบ้าน",
-    desc:"เหมาะสำหรับใช้เวลาวอร์/วอร์ลีก",
-    tips:["ใช้พร้อมกับน้ำยาพลัง"],
+    desc:"เหมาะสำหรับใช้เวลาวอร์/วอร์ลีก/ตีโหมดจัดอันดับ",
+    tips:["ใช้พร้อมกับน้ำยาพลังได้ดี"],
     prices:{ buy:[{type:"gems",value:300}], sell:{gems:10} }
   },
   {id:"researchpotion", name:"น้ำยาวิจัย", category:"น้ำยา",
@@ -81,7 +81,7 @@ const ITEMS = [
     image: IMG_BASE+"superpotion.webp",
     headline:"เปิดใช้งานทหารซูเปอร์ได้ทันทีเป็นเวลา 3 วัน",
     desc:"ทดลองคอมโบใหม่หรือตีวอร์",
-    tips:["เลือกช่วงที่ต้องใช้ทหารซูเปอร์จริง ๆ","เก็บไว้ใช้เวลาไม่เหลือน้ำดำ"],
+    tips:["เลือกช่วงที่ต้องใช้ทหารซูเปอร์จริง ๆ","เก็บไว้ใช้เวลาไม่เหลือน้ำดำ/ประหยัดน้ำดำ"],
     prices:{ buy:[{type:"gems",value:300}], sell:{gems:10} }
   },
   {id:"petpotion", name:"น้ำยาสัตว์เลี้ยง", category:"น้ำยา",
@@ -102,21 +102,21 @@ const ITEMS = [
     image: IMG_BASE+"runeofgold.webp",
     headline:"เติมทองคำให้เต็มคลัง",
     desc:"อัปคลังให้ใหญ่สุดก่อนใช้ จะคุ้มที่สุด",
-    tips:["กดตอนหลอดแทบว่าง"],
+    tips:["อัปคลังให้สุดก่อน","กดใช้ตอนคลังแทบว่าง"],
     prices:{ buy:[{type:"gems",value:1000}], sell:{gems:50} }
   },
   {id:"runeofelixir", name:"รูนน้ำอมฤต", category:"รูน",
     image: IMG_BASE+"runeofelixir.webp",
     headline:"เติมน้ำอมฤตให้เต็มคลัง",
     desc:"วางแผนใช้เพื่ออัปเกรดทันที",
-    tips:["อัปคลังให้สุดก่อน"],
+    tips:["อัปคลังให้สุดก่อน","กดใช้ตอนคลังแทบว่าง"],
     prices:{ buy:[{type:"gems",value:1000}], sell:{gems:50} }
   },
   {id:"runeofdarkelixir", name:"รูนน้ำอมฤตมืด", category:"รูน",
     image: IMG_BASE+"runeofdarkelixir.webp",
     headline:"เติมน้ำอมฤตมืดให้เต็มคลัง",
     desc:"ดีมากช่วงอัปผู้กล้า/สัตว์เลี้ยง",
-    tips:["วางแผนใช้ให้คุ้ม เติมเต็มคลัง ใช้กับหลายสิ่ง"],
+    tips:["อัปคลังให้สุดก่อน","กดใช้ตอนคลังแทบว่าง"],
     prices:{ buy:[{type:"gems",value:2000}], sell:{gems:50} }
   },
   {id:"runeofbuildergold", name:"รูนทองคำช่างก่อสร้าง", category:"รูน",
@@ -130,7 +130,7 @@ const ITEMS = [
     image: IMG_BASE+"runeofbuilderelixir.webp",
     headline:"เติมน้ำอมฤตในเมืองกลางคืนให้เต็มคลัง",
     desc:"ใช้กับเมืองกลางคืนที่ใช้น้ำอมฤตมาก",
-    tips:["ใช้คู่กับหอนาฬิกา/โหลดาวช่างก่อสร้าง"],
+    tips:["ใช้เวลาคลังแทบว่าง"],
     prices:{ buy:[{type:"gems",value:1000}], sell:{gems:50} }
   },
   {id:"hammerofbuilding", name:"ค้อนสิ่งก่อสร้าง", category:"ค้อน",
@@ -177,19 +177,6 @@ const ITEMS = [
   }
 ];
 
-const track    = document.getElementById('track');
-const dotsWrap = document.getElementById('dots');
-const allPanel = document.getElementById('allPanel');
-const allGrid  = document.getElementById('allGrid');
-const closeAll = document.getElementById('closeAll');
-const btnAll   = document.getElementById('btnAll');
-const prevBtn  = document.getElementById('prev');
-const nextBtn  = document.getElementById('next');
-
-const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) =>
-  ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])
-);
-
 const CAT_CLASS = {
   'ตำรา': 'book',
   'น้ำยา': 'potion',
@@ -197,241 +184,216 @@ const CAT_CLASS = {
   'ค้อน': 'hammer',
   'อื่น ๆ': 'misc',
 };
+const CAT_ORDER = ['ตำรา', 'น้ำยา', 'รูน', 'ค้อน', 'อื่น ๆ'];
 
+const filters = document.getElementById('filters');
+const rail     = document.getElementById('rail');
+const stage    = document.getElementById('stage');
+const detail   = document.getElementById('detail');
+const prevBtn  = document.getElementById('prev');
+const nextBtn  = document.getElementById('next');
+
+const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) =>
+  ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])
+);
+const catKeyOf = (it) => CAT_CLASS[it.category] || 'misc';
+
+const PRICE_EMOJI = { gems: '💎', league: '🏅', raid: '🪙' };
 function priceChip(p, cls = '') {
-  const icon = p.type === 'gems'   ? '<i class="gem" aria-hidden="true"></i>'
-             : p.type === 'league' ? '<i class="league" aria-hidden="true"></i>'
-             : p.type === 'raid'   ? '<i class="raid" aria-hidden="true"></i>' : '';
-  return `<span class="price ${cls}">${icon}${escapeHtml(p.label ?? p.value ?? 'ตั้งค่า')}</span>`;
+  const e = PRICE_EMOJI[p.type];
+  const icon = e ? `<span class="price-ic" aria-hidden="true">${e}</span>` : '';
+  return `<span class="price ${cls}">${escapeHtml(p.label ?? p.value ?? 'ตั้งค่า')}${icon}</span>`;
 }
 
-// Build DOM in fragments (single reflow)
-const slideFrag = document.createDocumentFragment();
-const dotFrag   = document.createDocumentFragment();
-const tileFrag  = document.createDocumentFragment();
+/* ── Build category filter chips ── */
+const chipFrag = document.createDocumentFragment();
+const allChip = document.createElement('button');
+allChip.type = 'button';
+allChip.className = 'chip is-active';
+allChip.dataset.cat = 'all';
+allChip.textContent = 'ทั้งหมด';
+chipFrag.appendChild(allChip);
+CAT_ORDER.forEach((cat) => {
+  const c = document.createElement('button');
+  c.type = 'button';
+  c.className = 'chip';
+  c.dataset.cat = cat;
+  c.style.setProperty('--c', `var(--cat-${CAT_CLASS[cat]})`);
+  c.textContent = cat;
+  chipFrag.appendChild(c);
+});
+filters.appendChild(chipFrag);
+const chips = Array.from(filters.children);
 
+/* ── Build rail item buttons ── */
+const railFrag = document.createDocumentFragment();
 ITEMS.forEach((it, i) => {
+  const key = catKeyOf(it);
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'item';
+  btn.dataset.index = i;
+  btn.dataset.cat = it.category;
+  btn.style.setProperty('--acc', `var(--cat-${key})`);
+  btn.setAttribute('role', 'tab');
+  btn.setAttribute('aria-label', `${it.name} · ${it.category}`);
+  btn.innerHTML = `
+    <span class="item-ico"><img src="${it.image}" alt="" width="46" height="46" loading="${i < 6 ? 'eager' : 'lazy'}" decoding="async"></span>
+    <span class="item-text">
+      <span class="item-name">${escapeHtml(it.name)}</span>
+      <span class="item-cat">${escapeHtml(it.category)}</span>
+    </span>`;
+  railFrag.appendChild(btn);
+});
+rail.appendChild(railFrag);
+const itemBtns = Array.from(rail.children);
+
+/* ── State ── */
+let index = 0;                 // current ITEMS index
+let activeBtn = itemBtns[0];
+let filterCat = 'all';
+let visible = ITEMS.map((_, i) => i);   // visible indices in current filter
+
+const isVisible = (i) => filterCat === 'all' || ITEMS[i].category === filterCat;
+
+/* ── Render the stage detail with morph-in animation ── */
+function renderDetail(i) {
+  const it = ITEMS[i];
+  const key = catKeyOf(it);
+
   const buyChips = it.prices?.buy?.length
     ? it.prices.buy.map(p => priceChip(p, 'price--buy')).join('')
-    : '<span class="price price--buy"><i class="gem" aria-hidden="true"></i>ตั้งค่า</span>';
+    : '<span class="price price--buy">ตั้งค่า</span>';
   const sellChip = it.prices?.sell?.gems != null
     ? priceChip({ type: 'gems', label: 'ขาย ' + it.prices.sell.gems }, 'price--sell') : '';
   const tipsHtml = (it.tips || []).map(t => `<li>${escapeHtml(t)}</li>`).join('');
-  const loadAttr = i === 0 ? 'eager' : 'lazy';
-  const priorityAttr = i === 0 ? ' fetchpriority="high"' : '';
 
-  const slide = document.createElement('article');
-  slide.className = 'slide';
-  slide.dataset.id = it.id;
-  slide.setAttribute('role', 'group');
-  slide.setAttribute('aria-roledescription', 'slide');
-  slide.setAttribute('aria-label', `${i + 1} จาก ${ITEMS.length}: ${it.name}`);
-  const catKey = CAT_CLASS[it.category] || 'misc';
-  slide.innerHTML = `
-    <article class="card magic-card magic-card--${catKey}">
-        <div class="magic-head">
-            <div class="magic-media">
-                <img src="${it.image}" alt="${escapeHtml(it.name)}" width="120" height="120" loading="${loadAttr}"${priorityAttr} decoding="async">
-            </div>
-            <div class="magic-titleblock">
-                <span class="eyebrow">${String(i + 1).padStart(2, '0')} · ${escapeHtml(it.category)}</span>
-                <h2 class="magic-name">${escapeHtml(it.name)}</h2>
-                <p class="magic-meta">${escapeHtml(it.headline || '')}</p>
-            </div>
-        </div>
+  stage.style.setProperty('--acc', `var(--cat-${key})`);
 
-        <div class="magic-body">
-            <div class="magic-desc-wrap">
-                <p class="magic-desc">${escapeHtml(it.desc || '')}</p>
-                ${tipsHtml ? `<ul class="magic-tips">${tipsHtml}</ul>` : ''}
-            </div>
-            <div class="magic-prices-wrap">
-                <div class="magic-prices-label">ราคา</div>
-                <div class="magic-prices">${buyChips}${sellChip}</div>
-            </div>
-        </div>
-    </article>`;
-  slideFrag.appendChild(slide);
+  detail.className = 'detail';   // reset → re-arm animation
+  detail.innerHTML = `
+    <div class="detail-media">
+      <span class="media-glow" aria-hidden="true"></span>
+      <span class="media-ring" aria-hidden="true"></span>
+      <img class="media-img" src="${it.image}" alt="${escapeHtml(it.name)}" width="168" height="168"
+           fetchpriority="high" decoding="async">
+    </div>
+    <div class="detail-head" style="--d:60ms">
+      <span class="eyebrow">${String(i + 1).padStart(2, '0')} · ${escapeHtml(it.category)}</span>
+      <h2 class="detail-name">${escapeHtml(it.name)}</h2>
+      <p class="detail-headline">${escapeHtml(it.headline || '')}</p>
+    </div>
+    <div class="detail-body" style="--d:130ms">
+      <p class="detail-desc">${escapeHtml(it.desc || '')}</p>
+      ${tipsHtml ? `<ul class="detail-tips">${tipsHtml}</ul>` : ''}
+      <div class="detail-prices">
+        <div class="prices-label">ราคา</div>
+        <div class="price-chips">${buyChips}${sellChip}</div>
+      </div>
+    </div>`;
 
-  const d = document.createElement('button');
-  d.type = 'button';
-  d.className = 'dot' + (i === 0 ? ' active' : '');
-  d.setAttribute('aria-label', `ไปยังรายการที่ ${i + 1}: ${it.name}`);
-  d.dataset.index = i;
-  dotFrag.appendChild(d);
-
-  const tile = document.createElement('button');
-  tile.type = 'button';
-  tile.className = 'tile';
-  tile.setAttribute('role', 'listitem');
-  tile.dataset.index = i;
-  tile.innerHTML = `
-    <img src="${it.image}" alt="" width="80" height="80" loading="lazy" decoding="async">
-    <div class="tname">${escapeHtml(it.name)}</div>`;
-  tileFrag.appendChild(tile);
-});
-
-track.appendChild(slideFrag);
-dotsWrap.appendChild(dotFrag);
-allGrid.appendChild(tileFrag);
-
-const slides  = Array.from(track.children);
-const dots    = Array.from(dotsWrap.children);
-
-let index = 0, width = 0, activeDot = dots[0];
-
-const clamp = (n, min, max) => Math.max(min, Math.min(n, max));
-const setTransform = (px) => { track.style.transform = `translate3d(${px}px,0,0)`; };
-const toX = (i) => -i * width;
-
-function size() {
-  width = track.clientWidth;
-  setTransform(toX(index));
+  void detail.offsetWidth;       // force reflow
+  detail.classList.add('is-in');
+  stage.scrollTop = 0;
 }
 
-function updateActiveDot(next) {
-  if (activeDot === next) return;
-  activeDot.classList.remove('active');
-  activeDot.removeAttribute('aria-current');
-  next.classList.add('active');
-  next.setAttribute('aria-current', 'true');
-  activeDot = next;
+function updateNavButtons() {
+  const pos = visible.indexOf(index);
+  prevBtn.disabled = pos <= 0;
+  nextBtn.disabled = pos >= visible.length - 1;
 }
 
-function triggerCardEntrance() {
-  const card = slides[index]?.querySelector('.magic-card');
-  if (!card) return;
-  card.classList.remove('card-entering');
-  void card.offsetWidth;
-  card.classList.add('card-entering');
+/* ── Select an item by ITEMS index ── */
+function select(i, { scrollIntoView = true } = {}) {
+  if (i == null || i < 0 || i >= ITEMS.length) return;
+  index = i;
+
+  if (activeBtn !== itemBtns[i]) {
+    activeBtn.classList.remove('is-active');
+    activeBtn.removeAttribute('aria-selected');
+    activeBtn = itemBtns[i];
+  }
+  activeBtn.classList.add('is-active');
+  activeBtn.setAttribute('aria-selected', 'true');
+
+  if (scrollIntoView) {
+    activeBtn.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+  }
+
+  renderDetail(i);
+  updateNavButtons();
 }
 
-function go(i, animate = true) {
-  const newIndex = clamp(i, 0, slides.length - 1);
-  const changed = newIndex !== index;
-  index = newIndex;
-  track.classList.toggle('animating', animate);
-  setTransform(toX(index));
-  prevBtn.disabled = index === 0;
-  nextBtn.disabled = index === slides.length - 1;
-  updateActiveDot(dots[index]);
-  if (animate && changed) triggerCardEntrance();
+/* step through the currently visible items */
+function step(dir) {
+  const pos = visible.indexOf(index);
+  const next = visible[pos + dir];
+  if (next != null) select(next);
 }
 
-track.addEventListener('transitionend', (e) => {
-  if (e.propertyName === 'transform') track.classList.remove('animating');
+/* ── Filtering ── */
+function applyFilter(cat) {
+  filterCat = cat;
+  chips.forEach(c => c.classList.toggle('is-active', c.dataset.cat === cat));
+
+  visible = [];
+  itemBtns.forEach((btn, i) => {
+    const show = isVisible(i);
+    btn.classList.toggle('hidden', !show);
+    if (show) visible.push(i);
+  });
+
+  if (!isVisible(index) && visible.length) {
+    select(visible[0]);
+  } else {
+    updateNavButtons();
+  }
+  rail.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+}
+
+/* ── Events ── */
+rail.addEventListener('click', (e) => {
+  const btn = e.target.closest('.item');
+  if (btn) select(parseInt(btn.dataset.index, 10));
 });
 
-dotsWrap.addEventListener('click', (e) => {
-  const d = e.target.closest('.dot');
-  if (d) go(parseInt(d.dataset.index, 10));
-});
-allGrid.addEventListener('click', (e) => {
-  const t = e.target.closest('.tile');
-  if (t) { go(parseInt(t.dataset.index, 10)); toggleAll(false); }
+filters.addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip');
+  if (chip) applyFilter(chip.dataset.cat);
 });
 
-prevBtn.addEventListener('click', () => go(index - 1));
-nextBtn.addEventListener('click', () => go(index + 1));
+prevBtn.addEventListener('click', () => step(-1));
+nextBtn.addEventListener('click', () => step(1));
 
 window.addEventListener('keydown', (e) => {
-  if (allPanel.classList.contains('open')) {
-    if (e.key === 'Escape') toggleAll(false);
-    return;
-  }
-  if (e.key === 'ArrowLeft')  go(index - 1);
-  else if (e.key === 'ArrowRight') go(index + 1);
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { step(1); e.preventDefault(); }
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { step(-1); e.preventDefault(); }
 });
 
-// ── Swipe ──
-const SWIPE_MIN = 35, SWIPE_VEL = 0.28, DIR_LOCK = 7, EDGE_RESIST = 0.18;
-let sw = { active: false, dragging: false, dir: null, x0: 0, y0: 0, x: 0, t0: 0 };
+/* ── Swipe on the stage (prev/next within filtered list) ── */
+const SWIPE_MIN = 45;
+let sw = { active: false, dir: null, x0: 0, y0: 0 };
 
-function swipeStart(x, y) {
-  if (allPanel.classList.contains('open')) return;
-  sw = { active: true, dragging: false, dir: null, x0: x, y0: y, x, t0: performance.now() };
-  track.classList.remove('animating');
-}
+stage.addEventListener('touchstart', (e) => {
+  const t = e.touches[0];
+  sw = { active: true, dir: null, x0: t.clientX, y0: t.clientY };
+}, { passive: true });
 
-function swipeMove(x, y) {
+stage.addEventListener('touchmove', (e) => {
+  if (!sw.active || sw.dir) return;
+  const t = e.touches[0];
+  const dx = t.clientX - sw.x0, dy = t.clientY - sw.y0;
+  if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+  sw.dir = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+}, { passive: true });
+
+stage.addEventListener('touchend', (e) => {
   if (!sw.active) return;
-  const dx = x - sw.x0, dy = y - sw.y0;
-
-  if (!sw.dir) {
-    if (Math.abs(dx) < DIR_LOCK && Math.abs(dy) < DIR_LOCK) return;
-    sw.dir = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v';
-    if (sw.dir === 'v') { sw.active = false; return; }
-    sw.dragging = true;
-  }
-  if (!sw.dragging) return;
-  sw.x = x;
-
-  let d = dx;
-  if ((index === 0 && dx > 0) || (index === slides.length - 1 && dx < 0)) {
-    d = dx * EDGE_RESIST;
-  }
-  setTransform(toX(index) + d);
-}
-
-function swipeEnd() {
-  if (!sw.dragging) { sw.active = false; return; }
   sw.active = false;
-  sw.dragging = false;
-  const dx  = sw.x - sw.x0;
-  const vel = Math.abs(dx) / Math.max(1, performance.now() - sw.t0);
-  if (Math.abs(dx) > SWIPE_MIN || vel > SWIPE_VEL) {
-    go(dx < 0 ? index + 1 : index - 1);
-  } else {
-    go(index);
-  }
-}
-
-track.addEventListener('pointerdown', (e) => {
-  if (e.pointerType === 'touch') return;
-  swipeStart(e.clientX, e.clientY);
-  track.setPointerCapture(e.pointerId);
-});
-track.addEventListener('pointermove', (e) => {
-  if (e.pointerType === 'touch') return;
-  swipeMove(e.clientX, e.clientY);
-});
-track.addEventListener('pointerup',     (e) => { if (e.pointerType !== 'touch') swipeEnd(); });
-track.addEventListener('pointercancel', (e) => { if (e.pointerType !== 'touch') swipeEnd(); });
-
-track.addEventListener('touchstart', (e) => {
-  const t = e.touches[0];
-  swipeStart(t.clientX, t.clientY);
-}, { passive: true });
-track.addEventListener('touchmove', (e) => {
-  if (!sw.active) return;
-  const t = e.touches[0];
-  swipeMove(t.clientX, t.clientY);
-  if (sw.dragging) e.preventDefault();
-}, { passive: false });
-track.addEventListener('touchend',    swipeEnd, { passive: true });
-track.addEventListener('touchcancel', swipeEnd, { passive: true });
-
-// ── Unified resize (debounced) ──
-let resizeTimeout;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimeout);
-  resizeTimeout = setTimeout(size, 120);
+  if (sw.dir !== 'h') return;
+  const dx = e.changedTouches[0].clientX - sw.x0;
+  if (Math.abs(dx) > SWIPE_MIN) step(dx < 0 ? 1 : -1);
 }, { passive: true });
 
-// ── Show-all panel ──
-function toggleAll(state) {
-  allPanel.classList.toggle('open', state);
-  allPanel.setAttribute('aria-hidden', String(!state));
-  document.body.style.overflow = state ? 'hidden' : '';
-}
-btnAll.addEventListener('click',   () => toggleAll(true));
-closeAll.addEventListener('click', () => toggleAll(false));
-
-// close on backdrop click
-allPanel.addEventListener('click', (e) => {
-  if (e.target === allPanel) toggleAll(false);
-});
-
-// Init
-size();
-go(0, false);
+/* ── Init ── */
+select(0, { scrollIntoView: false });
