@@ -176,13 +176,13 @@ const ITEMS = [
     prices:{ buy:[{type:"gems",value:500}], sell:{gems:50} }
   }
 ];
-
-const CAT_CLASS = {
-  'ตำรา': 'book',
-  'น้ำยา': 'potion',
-  'รูน': 'rune',
-  'ค้อน': 'hammer',
-  'อื่น ๆ': 'misc',
+/* Category → hue from the KLAWKLA Tools palette (sky, violet, amber, coral, silver) */
+const CAT_HUE = {
+  'ตำรา': 'sky',
+  'น้ำยา': 'violet',
+  'รูน': 'amber',
+  'ค้อน': 'coral',
+  'อื่น ๆ': 'silver',
 };
 const CAT_ORDER = ['ตำรา', 'น้ำยา', 'รูน', 'ค้อน', 'อื่น ๆ'];
 
@@ -197,27 +197,37 @@ const searchIn = document.getElementById('search');
 const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) =>
   ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])
 );
-const catKeyOf = (it) => CAT_CLASS[it.category] || 'misc';
+const hueOf = (it) => CAT_HUE[it.category] || 'silver';
+const fmt = (n) => Number(n).toLocaleString('en-US');
 
-const PRICE_EMOJI = { gems: '💎', league: '🏅', raid: '🪙' };
-function priceChip(p, cls = '') {
-  const e = PRICE_EMOJI[p.type];
-  const icon = e ? `<span class="price-ic" aria-hidden="true">${e}</span>` : '';
-  return `<span class="price ${cls}">${escapeHtml(p.label ?? p.value ?? 'ตั้งค่า')}${icon}</span>`;
+/* Price pills: gems in gem green, league medals in ink */
+const CURRENCY = {
+  gems:   { cls: 'kk-amount--gem', icon: 'gem',   word: 'เพชร' },
+  league: { cls: '',               icon: 'medal', word: 'เหรียญลีก' },
+};
+function pricePill(prefix, p, muted = false) {
+  const cur = CURRENCY[p.type] || CURRENCY.gems;
+  const cls = muted ? 'kk-amount--muted' : cur.cls;
+  return `<span class="kk-amount ${cls} kk-amount--pill"><span class="kk-amount-prefix">${prefix}</span>${fmt(p.value)}<span class="kk-sr"> ${cur.word}</span><svg class="kk-amount-icon" aria-hidden="true"><use href="#kk-${cur.icon}"/></svg></span>`;
 }
 
 /* ── Build category filter chips (with item counts) ── */
 const catCounts = {};
 ITEMS.forEach((it) => { catCounts[it.category] = (catCounts[it.category] || 0) + 1; });
 
-function makeChip(cat, label, count) {
+function makeChip(cat, label, count, hue) {
   const c = document.createElement('button');
   c.type = 'button';
-  c.className = 'chip';
+  c.className = 'kk-chip';
   c.dataset.cat = cat;
+  c.setAttribute('aria-pressed', 'false');
+  if (hue) {
+    c.style.setProperty('--hue', `var(--${hue})`);
+    c.innerHTML = '<span class="kk-chip-dot" aria-hidden="true"></span>';
+  }
   c.append(label + ' ');
   const n = document.createElement('span');
-  n.className = 'chip-n';
+  n.className = 'kk-chip-count';
   n.textContent = count;
   c.appendChild(n);
   return c;
@@ -225,33 +235,29 @@ function makeChip(cat, label, count) {
 
 const chipFrag = document.createDocumentFragment();
 const allChip = makeChip('all', 'ทั้งหมด', ITEMS.length);
-allChip.classList.add('is-active');
+allChip.setAttribute('aria-pressed', 'true');
 chipFrag.appendChild(allChip);
-CAT_ORDER.forEach((cat) => {
-  const c = makeChip(cat, cat, catCounts[cat] || 0);
-  c.style.setProperty('--c', `var(--cat-${CAT_CLASS[cat]})`);
-  chipFrag.appendChild(c);
-});
+CAT_ORDER.forEach((cat) => chipFrag.appendChild(makeChip(cat, cat, catCounts[cat] || 0, CAT_HUE[cat])));
 filters.appendChild(chipFrag);
 const chips = Array.from(filters.children);
 
 /* ── Build rail item buttons ── */
 const railFrag = document.createDocumentFragment();
 ITEMS.forEach((it, i) => {
-  const key = catKeyOf(it);
   const btn = document.createElement('button');
   btn.type = 'button';
-  btn.className = 'item';
+  btn.className = 'kk-item';
   btn.dataset.index = i;
   btn.dataset.cat = it.category;
-  btn.style.setProperty('--acc', `var(--cat-${key})`);
+  btn.style.setProperty('--hue', `var(--${hueOf(it)})`);
   btn.setAttribute('role', 'tab');
+  btn.setAttribute('aria-selected', 'false');
   btn.setAttribute('aria-label', `${it.name} · ${it.category}`);
   btn.innerHTML = `
-    <span class="item-ico"><img src="${it.image}" alt="" width="46" height="46" loading="${i < 6 ? 'eager' : 'lazy'}" decoding="async"></span>
-    <span class="item-text">
-      <span class="item-name">${escapeHtml(it.name)}</span>
-      <span class="item-cat">${escapeHtml(it.category)}</span>
+    <span class="kk-item-icon"><img src="${it.image}" alt="" width="38" height="38" loading="${i < 6 ? 'eager' : 'lazy'}" decoding="async"></span>
+    <span class="kk-item-text">
+      <span class="kk-item-name">${escapeHtml(it.name)}</span>
+      <span class="kk-item-cat">${escapeHtml(it.category)}</span>
     </span>`;
   railFrag.appendChild(btn);
 });
@@ -274,7 +280,7 @@ const isVisible = (i) => {
     || (it.headline || '').toLowerCase().includes(query);
 };
 
-/* ── Render the stage detail with morph-in animation ── */
+/* ── Render the stage detail with the rise-in animation ── */
 const eyebrowText = (i) => {
   const pos = visible.indexOf(i);
   return `${String(pos + 1).padStart(2, '0')} / ${String(visible.length).padStart(2, '0')} · ${ITEMS[i].category}`;
@@ -282,37 +288,30 @@ const eyebrowText = (i) => {
 
 function renderDetail(i) {
   const it = ITEMS[i];
-  const key = catKeyOf(it);
 
-  const buyChips = it.prices?.buy?.length
-    ? it.prices.buy.map(p => priceChip({ ...p, label: 'ซื้อ ' + p.value }, 'price--buy')).join('')
-    : '<span class="price price--buy">รับจากอีเวนต์</span>';
-  const sellChip = it.prices?.sell?.gems != null
-    ? priceChip({ type: 'gems', label: 'ขาย ' + it.prices.sell.gems }, 'price--sell') : '';
+  const buyPills = it.prices?.buy?.length
+    ? it.prices.buy.map(p => pricePill('ซื้อ', p)).join('')
+    : '<span class="kk-amount kk-amount--muted kk-amount--pill">รับจากอีเวนต์</span>';
+  const sellPill = it.prices?.sell?.gems != null
+    ? pricePill('ขาย', { type: 'gems', value: it.prices.sell.gems }, true) : '';
   const tipsHtml = (it.tips || []).map(t => `<li>${escapeHtml(t)}</li>`).join('');
 
-  stage.style.setProperty('--acc', `var(--cat-${key})`);
+  stage.style.setProperty('--hue', `var(--${hueOf(it)})`);
 
-  detail.className = 'detail';   // reset → re-arm animation
+  detail.className = 'kk-detail';   // reset → re-arm animation
   detail.innerHTML = `
-    <div class="detail-media">
-      <span class="media-glow" aria-hidden="true"></span>
-      <span class="media-ring" aria-hidden="true"></span>
-      <img class="media-img" src="${it.image}" alt="${escapeHtml(it.name)}" width="168" height="168"
-           fetchpriority="high" decoding="async">
+    <div class="kk-detail-media">
+      <img src="${it.image}" alt="${escapeHtml(it.name)}" width="121" height="121" fetchpriority="high" decoding="async">
     </div>
-    <div class="detail-head" style="--d:60ms">
-      <span class="eyebrow">${escapeHtml(eyebrowText(i))}</span>
-      <h2 class="detail-name">${escapeHtml(it.name)}</h2>
-      <p class="detail-headline">${escapeHtml(it.headline || '')}</p>
+    <div class="kk-detail-head">
+      <p class="kk-eyebrow">${escapeHtml(eyebrowText(i))}</p>
+      <h2 class="kk-detail-name">${escapeHtml(it.name)}</h2>
+      <p class="kk-detail-headline">${escapeHtml(it.headline || '')}</p>
     </div>
-    <div class="detail-body" style="--d:130ms">
-      <p class="detail-desc">${escapeHtml(it.desc || '')}</p>
-      ${tipsHtml ? `<ul class="detail-tips">${tipsHtml}</ul>` : ''}
-      <div class="detail-prices">
-        <div class="prices-label">ราคา</div>
-        <div class="price-chips">${buyChips}${sellChip}</div>
-      </div>
+    <div class="kk-detail-body">
+      <p class="kk-detail-desc">${escapeHtml(it.desc || '')}</p>
+      ${tipsHtml ? `<ul class="kk-tips">${tipsHtml}</ul>` : ''}
+      <div class="kk-detail-prices"><span class="kk-label mi-prices-label">ราคา</span>${buyPills}${sellPill}</div>
     </div>`;
 
   void detail.offsetWidth;       // force reflow
@@ -323,7 +322,7 @@ function renderDetail(i) {
 function updateNavButtons() {
   const pos = visible.indexOf(index);
   prevBtn.disabled = pos <= 0;
-  nextBtn.disabled = pos >= visible.length - 1;
+  nextBtn.disabled = pos < 0 || pos >= visible.length - 1;
 }
 
 /* ── Select an item by ITEMS index ── */
@@ -332,11 +331,9 @@ function select(i, { scrollIntoView = true } = {}) {
   index = i;
 
   if (activeBtn !== itemBtns[i]) {
-    activeBtn.classList.remove('is-active');
-    activeBtn.removeAttribute('aria-selected');
+    activeBtn.setAttribute('aria-selected', 'false');
     activeBtn = itemBtns[i];
   }
-  activeBtn.classList.add('is-active');
   activeBtn.setAttribute('aria-selected', 'true');
 
   if (scrollIntoView) {
@@ -356,12 +353,13 @@ function step(dir) {
 
 /* ── Empty state (no matches) ── */
 function renderEmpty() {
-  detail.className = 'detail is-empty';
+  stage.style.setProperty('--hue', 'var(--silver)');
+  detail.className = 'kk-detail is-empty';
   detail.innerHTML = `
-    <div class="stage-empty">
-      <p class="empty-title">ไม่พบไอเทมที่ค้นหา</p>
-      <p class="empty-hint">ลองพิมพ์คำอื่น หรือเปลี่ยนหมวดหมู่</p>
-      <button class="empty-clear" type="button">แสดงไอเทมทั้งหมด</button>
+    <div class="kk-empty">
+      <p class="kk-empty-title">ไม่พบไอเทมที่ค้นหา</p>
+      <p class="kk-empty-hint">ลองพิมพ์คำอื่น หรือเปลี่ยนหมวดหมู่</p>
+      <button class="kk-btn mi-clear" type="button">แสดงไอเทมทั้งหมด</button>
     </div>`;
 }
 
@@ -372,7 +370,7 @@ function refreshVisibility() {
   visible = [];
   itemBtns.forEach((btn, i) => {
     const show = isVisible(i);
-    btn.classList.toggle('hidden', !show);
+    btn.hidden = !show;
     if (show) visible.push(i);
   });
 
@@ -383,7 +381,7 @@ function refreshVisibility() {
   } else if (wasEmpty) {
     select(index, { scrollIntoView: false });
   } else {
-    const eb = detail.querySelector('.eyebrow');
+    const eb = detail.querySelector('.kk-eyebrow');
     if (eb) eb.textContent = eyebrowText(index);
   }
   updateNavButtons();
@@ -391,19 +389,19 @@ function refreshVisibility() {
 
 function applyFilter(cat) {
   filterCat = cat;
-  chips.forEach(c => c.classList.toggle('is-active', c.dataset.cat === cat));
+  chips.forEach(c => c.setAttribute('aria-pressed', String(c.dataset.cat === cat)));
   refreshVisibility();
-  rail.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  rail.parentElement.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
 }
 
 /* ── Events ── */
 rail.addEventListener('click', (e) => {
-  const btn = e.target.closest('.item');
+  const btn = e.target.closest('.kk-item');
   if (btn) select(parseInt(btn.dataset.index, 10));
 });
 
 filters.addEventListener('click', (e) => {
-  const chip = e.target.closest('.chip');
+  const chip = e.target.closest('.kk-chip');
   if (chip) applyFilter(chip.dataset.cat);
 });
 
@@ -424,7 +422,7 @@ searchIn.addEventListener('keydown', (e) => {
 });
 
 detail.addEventListener('click', (e) => {
-  if (e.target.closest('.empty-clear')) {
+  if (e.target.closest('.mi-clear')) {
     searchIn.value = '';
     query = '';
     applyFilter('all');

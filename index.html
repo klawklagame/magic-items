@@ -5,64 +5,69 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content="สำรวจทุกไอเทมเวทมนตร์ใน Clash of Clans พร้อมภาพ คำอธิบาย เคล็ดลับ และราคาซื้อ/ขาย" />
-    <meta name="theme-color" content="#0a0a0a">
+    <meta name="theme-color" content="#0f0b11">
     <meta name="color-scheme" content="dark">
-    <title>Magic Items · KLAWKLA</title>
+    <title>ไอเทมเวทมนตร์ · KLAWKLA</title>
     <link rel="preconnect" href="https://klawkla.com" crossorigin>
-    <link rel="stylesheet" href="style.css">
+    <link rel="preload" href="fonts/FCKrungThep-Bold.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/FCMahaNakhonFlat-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="kk/tokens.css?v=1">
+    <link rel="stylesheet" href="kk/kk.css?v=1">
+    <link rel="stylesheet" href="style.css?v=kk-1">
 </head>
 
 <body>
-    <div class="app">
+    <svg class="kk-sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <symbol id="kk-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></symbol>
+        <symbol id="kk-chevron-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4 7 12l8 8"/></symbol>
+        <symbol id="kk-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4l8 8-8 8"/></symbol>
+        <symbol id="kk-gem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20"/><path d="M9.5 3 8 9l4 12 4-12-1.5-6"/></symbol>
+        <symbol id="kk-medal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 2h9"/><path d="M7.5 2 10.5 9.5"/><path d="M16.5 2l-3 7.5"/><circle cx="12" cy="15" r="6"/><circle cx="12" cy="15" r="2.2"/></symbol>
+    </svg>
 
-        <header class="topbar reveal" style="--i:0;">
-            <a class="brand" href="https://www.klawkla.com/">
-                <img src="https://klawkla.com/content/images/2025/08/logo.webp" alt="แกล้วกล้า"
-                    width="34" height="34" fetchpriority="high" decoding="async" />
-                <span class="brand-name">KLAWKLA</span>
+    <div class="kk-app">
+        <header class="kk-topbar">
+            <a class="kk-brand" href="https://www.klawkla.com/">
+                <img class="kk-brand-mark" src="images/logo.webp" alt="แกล้วกล้า" width="32" height="32" fetchpriority="high">
+                <span class="kk-brand-name">KLAWKLA</span>
             </a>
-            <h1 class="topbar-title">ไอเทมเวทมนตร์</h1>
-            <div class="search">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.8-3.8" /></svg>
-                <input id="search" type="search" placeholder="ค้นหาไอเทม…" autocomplete="off"
-                    aria-label="ค้นหาไอเทม" />
+            <h1 class="kk-topbar-title">ไอเทมเวทมนตร์</h1>
+            <div class="kk-topbar-actions">
+                <label class="kk-search">
+                    <svg class="kk-icon" aria-hidden="true"><use href="#kk-search"/></svg>
+                    <input id="search" type="search" placeholder="ค้นหาไอเทม…" autocomplete="off" aria-label="ค้นหาไอเทม">
+                </label>
             </div>
         </header>
 
-        <nav class="filters reveal" style="--i:1;" id="filters" aria-label="กรองตามหมวดหมู่">
-            <!-- category chips injected -->
+        <nav class="kk-toolbar" aria-label="กรองตามหมวดหมู่">
+            <div class="kk-chips kk-chips--scroll" id="filters"></div>
         </nav>
 
-        <div class="layout">
-            <nav class="rail reveal" style="--i:2;" aria-label="รายการไอเทม">
-                <div class="rail-scroll" id="rail" role="tablist" aria-orientation="vertical"></div>
+        <div class="kk-app-main">
+            <nav class="kk-rail" aria-label="รายการไอเทม">
+                <div class="kk-items" id="rail" role="tablist" aria-orientation="vertical"></div>
             </nav>
 
-            <main class="stage reveal" style="--i:3;" id="stage" role="region" aria-live="polite"
-                aria-label="รายละเอียดไอเทม">
-                <div class="stage-bg" aria-hidden="true"></div>
-                <article class="detail" id="detail"></article>
-                <div class="stage-nav-group">
-                    <button class="stage-nav" id="prev" type="button" aria-label="ก่อนหน้า">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4 7 12l8 8" /></svg>
+            <main class="kk-stage" id="stage" aria-live="polite" aria-label="รายละเอียดไอเทม">
+                <article class="kk-detail" id="detail"></article>
+                <div class="kk-stage-nav">
+                    <button class="kk-iconbtn kk-iconbtn--round kk-iconbtn--float" id="prev" type="button" aria-label="ก่อนหน้า">
+                        <svg class="kk-icon" aria-hidden="true"><use href="#kk-chevron-left"/></svg>
                     </button>
-                    <button class="stage-nav" id="next" type="button" aria-label="ถัดไป">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8" /></svg>
+                    <button class="kk-iconbtn kk-iconbtn--round kk-iconbtn--float" id="next" type="button" aria-label="ถัดไป">
+                        <svg class="kk-icon" aria-hidden="true"><use href="#kk-chevron-right"/></svg>
                     </button>
                 </div>
             </main>
         </div>
 
-        <footer class="foot reveal" style="--i:4;">
-            <p class="credit">
-                สร้างโดยผู้เล่นแคลชเพื่อผู้เล่นแคลช ·
-                <a href="https://www.klawkla.com" target="_blank" rel="noopener noreferrer">klawkla.com</a>
-            </p>
+        <footer class="kk-footer kk-footer--bar mi-footer">
+            <p>สร้างโดยผู้เล่นแคลชเพื่อผู้เล่นแคลช · <a href="https://www.klawkla.com" target="_blank" rel="noopener noreferrer">klawkla.com</a></p>
         </footer>
-
     </div>
 
-    <script src="script.js" defer></script>
+    <script src="script.js?v=kk-1" defer></script>
 </body>
 
 </html>
